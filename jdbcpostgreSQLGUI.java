@@ -13,7 +13,7 @@ public class jdbcpostgreSQLGUI {
      Connection conn = null;
      try {
         Class.forName("org.postgresql.Driver");
-        conn = DriverManager.getConnection("jdbc:postgresql://csce-315-db.engr.tamu.edu/lightfoot",
+        conn = DriverManager.getConnection("jdbc:postgresql://csce-315-db.engr.tamu.edu/team_nand",
            my.user, my.pswd);
      } catch (Exception e) {
         e.printStackTrace();
@@ -26,16 +26,16 @@ public class jdbcpostgreSQLGUI {
      //create a statement object
        Statement stmt = conn.createStatement();
        //create an SQL statement
-       String sqlStatement = "SELECT cus_lname FROM customer";
+       String sqlStatement = "SELECT player_code FROM offensive_records limit 10";
        //send statement to DBMS
        ResultSet result = stmt.executeQuery(sqlStatement);
 
        //OUTPUT
-       JOptionPane.showMessageDialog(null,"Customer Last names from the Database.");
+       JOptionPane.showMessageDialog(null,"Player code from offensive_records");
        //System.out.println("______________________________________");
        while (result.next()) {
          //System.out.println(result.getString("cus_lname"));
-         cus_lname += result.getString("cus_lname")+"\n";
+         cus_lname += result.getString("player_code")+"\n";
        }
    } catch (Exception e){
      JOptionPane.showMessageDialog(null,"Error accessing Database.");
