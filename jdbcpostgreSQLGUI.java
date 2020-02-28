@@ -26,7 +26,20 @@ public class jdbcpostgreSQLGUI {
      //create a statement object
        Statement stmt = conn.createStatement();
        //create an SQL statement
-       String sqlStatement = "SELECT player_code FROM offensive_records limit 10";
+       String[] choices = { "team_code", "offensive_records", "C", "D", "E", "F" };
+       String input = (String) JOptionPane.showInputDialog(null, "Choose now...",
+        "The Choice of a Lifetime", JOptionPane.QUESTION_MESSAGE, null, // Use
+                                                                        // default
+                                                                        // icon
+        choices, // Array of choices
+        choices[1]); // Initial choice
+       System.out.println(input);
+
+       String sqlStatement = "";
+       if(input == "offensive_records")
+          sqlStatement = "SELECT player_code FROM offensive_records limit 10";
+       else if(input == "team_code")
+          sqlStatement = "SELECT name FROM teams limit 10";
        //send statement to DBMS
        ResultSet result = stmt.executeQuery(sqlStatement);
 
@@ -35,7 +48,10 @@ public class jdbcpostgreSQLGUI {
        //System.out.println("______________________________________");
        while (result.next()) {
          //System.out.println(result.getString("cus_lname"));
+        if(input == "offensive_records")
          cus_lname += result.getString("player_code")+"\n";
+        else if(input == "team_code")
+          cus_lname += result.getString("name")+"\n";
        }
    } catch (Exception e){
      JOptionPane.showMessageDialog(null,"Error accessing Database.");
