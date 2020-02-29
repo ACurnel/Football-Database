@@ -1,6 +1,10 @@
 import java.sql.*;
 import javax.swing.JOptionPane;
 import java.util.ArrayList;
+import java.awt.event.*;
+import javax.swing.*;
+
+
 //import java.sql.DriverManager;
 /*
 Robert lightfoot
@@ -50,7 +54,20 @@ public class jdbcpostgreSQLGUI {
 			for (int j = 0; j < columnlist.size(); j++) {
 			//System.out.println(columnlist.get(j) + "\n");
 				output += columnlist.get(j) + "\n";
-			}		
+			}
+			ArrayList<JCheckBox> ColumnBoxes = new ArrayList<JCheckBox>();
+			Object[] columncontent = new Object[2*columnlist.size()];
+			for (int i = 0; i < columnlist.size(); i++) {
+				ColumnBoxes.add(new JCheckBox());
+				columncontent[(2*i)] = columnlist.get(i);
+				columncontent[(2*i)+1] = ColumnBoxes.get(i);
+			}
+			JOptionPane.showConfirmDialog(null, columncontent, "Which Columns Would You Like To Display?", JOptionPane.OK_OPTION);
+			ArrayList<Boolean> columnchecks = new ArrayList<Boolean>();
+			for (int i = 0; i < columnlist.size(); i++) {
+				columnchecks.add(ColumnBoxes.get(i).isSelected());
+			}
+			
 			/*if (input == "offensive_records")
 				sqlStatement = "SELECT player_code FROM offensive_records limit 10";
 			else if (input == "team_code")
