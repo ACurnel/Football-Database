@@ -50,11 +50,11 @@ public class jdbcpostgreSQLGUI {
 			for (int i = 1; i < colcnt; i++) {
 				columnlist.add(columnstuff.getColumnName(i));
 			}
-			JOptionPane.showMessageDialog(null, "Available Columns:\n");
+			/*JOptionPane.showMessageDialog(null, "Available Columns:\n");
 			for (int j = 0; j < columnlist.size(); j++) {
 			//System.out.println(columnlist.get(j) + "\n");
 				output += columnlist.get(j) + "\n";
-			}
+			}*/
 			ArrayList<JCheckBox> ColumnBoxes = new ArrayList<JCheckBox>();
 			Object[] columncontent = new Object[2*columnlist.size()];
 			for (int i = 0; i < columnlist.size(); i++) {
@@ -66,6 +66,40 @@ public class jdbcpostgreSQLGUI {
 			ArrayList<Boolean> columnchecks = new ArrayList<Boolean>();
 			for (int i = 0; i < columnlist.size(); i++) {
 				columnchecks.add(ColumnBoxes.get(i).isSelected());
+			}
+			String columnsSelected = "";
+			ArrayList<String> SelectedColumnList = new ArrayList<String>();
+			for (int i = 0; i < columnlist.size(); i++) {
+				if (columnchecks.get(i))
+					SelectedColumnList.add(columnlist.get(i));
+			}
+			System.out.println(SelectedColumnList.size());
+			for (int i = 0; i < SelectedColumnList.size(); i++) {
+				if (i!=SelectedColumnList.size()-1)
+					columnsSelected = columnsSelected + SelectedColumnList.get(i) + ",";
+				else
+					columnsSelected = columnsSelected + SelectedColumnList.get(i) + " ";
+			}
+			//if (columnchecks.get(columnlist.size()-1))
+				//columnsSelected += columnlist.get(columnlist.size()-1);
+			sqlStatement = "Select " + columnsSelected + "From " + input + " limit 10;";
+			System.out.println(sqlStatement);
+			ResultSet columnsResult = stmt.executeQuery(sqlStatement);
+			for (int i = 0; i < SelectedColumnList.size(); i++) {
+				if (i!=SelectedColumnList.size()-1)
+					output = output + SelectedColumnList.get(i) + ", ";
+				else
+					output = output + SelectedColumnList.get(i);
+			}
+			output += "\n______________________________________________\n";
+			while(columnsResult.next()) {
+				for (int i = 0; i < SelectedColumnList.size(); i++) {
+					if (i!=SelectedColumnList.size()-1)
+						output = output + columnsResult.getString(SelectedColumnList.get(i)) + ", ";
+					else
+						output = output + columnsResult.getString(SelectedColumnList.get(i));
+				}
+				output += "\n";
 			}
 			
 			/*if (input == "offensive_records")
