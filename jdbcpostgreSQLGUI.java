@@ -14,6 +14,7 @@ CSCE 315
 public class jdbcpostgreSQLGUI {
 	public static void main(String args[]) {
 		dbSetup my = new dbSetup();
+    ArrayList<String> colToJoin = new ArrayList();
 		// Building the connection
 		Connection conn = null;
 		try {
@@ -45,6 +46,8 @@ public class jdbcpostgreSQLGUI {
 			// Queries 0 rows to parse columns
 			sqlStatement = "Select * from " + input + " limit 0";
 			ResultSet columns = stmt.executeQuery(sqlStatement);
+      // choices = { "players", "teams", "seasons", "player_records", "games", "Stadiums", "Positions", "Offensive_Records", "Defensive_Records", "Conferences", "Statistics", "Drives" };
+
 			ResultSetMetaData columnstuff = columns.getMetaData();
 			int colcnt = columnstuff.getColumnCount();
 			ArrayList<String> columnlist = new ArrayList<String>(); // holds columns in input entity
@@ -103,11 +106,111 @@ public class jdbcpostgreSQLGUI {
 				}
 				output += "\n";
 			}
-			
+
+      /*****************************************************************************/
+        //get names of columns
+      ResultSet resultNumCol = stmt.executeQuery("SELECT * FROM "+input+" limit 1");
+      ResultSetMetaData rsmd = resultNumCol.getMetaData();
+      ArrayList<String> columnsJoin = new ArrayList<String>();
+      for(int i = 1; i <= rsmd.getColumnCount(); i++){
+        columnsJoin.add(rsmd.getColumnName(i));
+      }
+       //Dsiplay the columns that can be joined
+      JOptionPane.showMessageDialog(null, "Available columns to Join (only team_code and player_code working):\n"); 
+      // joinBoxes.setSize(150, 1000);
+      // joinBoxes.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+      ArrayList<JCheckBox> joinCheck = new ArrayList<JCheckBox>();
+      Object[] columncontentJoin = new Object[2*columnsJoin.size()];
+      ArrayList<String> colDisplayed = new ArrayList<String>();
+      int countT = 0;
+      for(String i : columnsJoin){
+        if(i.contains("code")){
+          JCheckBox Box = new JCheckBox(i); 
+          joinCheck.add(Box);
+          columncontentJoin[(2*countT)+1] = joinCheck.get(countT++);
+          colDisplayed.add(i);
+        }
+      }
+      JOptionPane.showConfirmDialog(null, columncontentJoin, "Which Columns Would You Like To Join?", JOptionPane.DEFAULT_OPTION);
+      
+      //FIXWHENMERGE: columns to print should be set to the selected entities from Alex's code
+      ArrayList<String> columnsToPrint = SelectedColumnList;
+      // columnsToPrint.add("team_code");
+      // columnsToPrint.add("drive_number");
+      // columnsToPrint.add("start_period");
+      // columnsToPrint.add("yards");
+
+      // colToJoin = new ArrayList<String>();
+      for(int i = 0; i < joinCheck.size(); i++){
+        if(joinCheck.get(i).isSelected())
+          colToJoin.add(colDisplayed.get(i));
+      }
+      
+
+      //FIXWHENMERGE: remove limits and ensure they are taken care of elsewhere
+      //FIXWHENMERGE: ensure input is current entity selected 
+      String joinCmd = "select ";
+      input = input.toLowerCase();
+      for(String i: colToJoin){
+
+        if(i.equals("team_code") ){
+          joinCmd += ("teams.name, ");
+          for(String j: columnsToPrint){
+            if(colToJoin.contains(j) == false){
+              joinCmd += (input+"."+j);
+              if (columnsToPrint.indexOf(j) != columnsToPrint.size()-1)
+                joinCmd += ", ";
+              else
+                joinCmd += " ";
+            }
+          }
+          joinCmd += (" from "+input+" inner join ");
+          joinCmd += ("teams on " + input +".team_code = teams.team_code limit 10");
+
+
+        }
+        else if(i.equals("player_code")){
+          joinCmd += ("players.first_name, players.last_name, ");
+          for(String j: columnsToPrint){
+            if(colToJoin.contains(j) == false){
+              joinCmd += (input+"."+j);
+              if (columnsToPrint.indexOf(j) != columnsToPrint.size()-1)
+                joinCmd += ", ";
+              else
+                joinCmd += " ";
+            }
+          }
+          joinCmd += (" from "+input+" inner join ");
+          joinCmd += ("players on "+ input +".player_code = players.player_code limit 10");
+        }
+      }
+      System.out.println(joinCmd);
+      ResultSet joinRes = stmt.executeQuery(joinCmd);
+      ResultSetMetaData joinResmd = joinRes.getMetaData();
+
+      String joinResStr = "";
+
+      while(joinRes.next()){
+        for(int i = 1; i <= joinResmd.getColumnCount(); i++){
+          if(i != joinResmd.getColumnCount())
+            joinResStr += joinRes.getString(i)+", ";
+          else
+            joinResStr += joinRes.getString(i);
+        }
+        joinResStr += "\n";
+      }
+
+      JOptionPane.showMessageDialog(null, joinResStr);
+
+
+
+      /****************************************************************************/
+
 		} catch (Exception e) {
 			JOptionPane.showMessageDialog(null, "Error accessing Database.");
 		}
-		JOptionPane.showMessageDialog(null, output);
+    if (colToJoin.size() == 0)
+		  JOptionPane.showMessageDialog(null, output);
 		// closing the connection
 		try {
 			conn.close();
