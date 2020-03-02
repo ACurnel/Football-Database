@@ -41,50 +41,51 @@ public class jdbcpostgreSQLGUI {
 					choices[0]); // Initial choice
 			System.out.println(input);
 			String sqlStatement = "";
-			// REQUEST COLUMN LIST
+			
+			// Queries 0 rows to parse columns
 			sqlStatement = "Select * from " + input + " limit 0";
 			ResultSet columns = stmt.executeQuery(sqlStatement);
 			ResultSetMetaData columnstuff = columns.getMetaData();
 			int colcnt = columnstuff.getColumnCount();
-			ArrayList<String> columnlist = new ArrayList<String>();
+			ArrayList<String> columnlist = new ArrayList<String>(); // holds columns in input entity
 			for (int i = 1; i < colcnt; i++) {
 				columnlist.add(columnstuff.getColumnName(i));
 			}
-			/*JOptionPane.showMessageDialog(null, "Available Columns:\n");
-			for (int j = 0; j < columnlist.size(); j++) {
-			//System.out.println(columnlist.get(j) + "\n");
-				output += columnlist.get(j) + "\n";
-			}*/
-			ArrayList<JCheckBox> ColumnBoxes = new ArrayList<JCheckBox>();
+			// Creates check box options for each column by adding the new box and column name
+			ArrayList<JCheckBox> ColumnBoxes = new ArrayList<JCheckBox>(); // holds check boxes
 			Object[] columncontent = new Object[2*columnlist.size()];
 			for (int i = 0; i < columnlist.size(); i++) {
 				ColumnBoxes.add(new JCheckBox());
 				columncontent[(2*i)] = columnlist.get(i);
 				columncontent[(2*i)+1] = ColumnBoxes.get(i);
 			}
+			// Displays dialog box showing column check boxes, then creates list of desired columns
 			JOptionPane.showConfirmDialog(null, columncontent, "Which Columns Would You Like To Display?", JOptionPane.OK_OPTION);
-			ArrayList<Boolean> columnchecks = new ArrayList<Boolean>();
+			ArrayList<Boolean> columnchecks = new ArrayList<Boolean>(); // array of true/false values corresponding to desired columns
 			for (int i = 0; i < columnlist.size(); i++) {
 				columnchecks.add(ColumnBoxes.get(i).isSelected());
 			}
-			String columnsSelected = "";
-			ArrayList<String> SelectedColumnList = new ArrayList<String>();
+
+			ArrayList<String> SelectedColumnList = new ArrayList<String>(); // List holding desired column names
 			for (int i = 0; i < columnlist.size(); i++) {
 				if (columnchecks.get(i))
 					SelectedColumnList.add(columnlist.get(i));
 			}
-			System.out.println(SelectedColumnList.size());
+			//System.out.println(SelectedColumnList.size()); // used for debugging
+			
+			String columnsSelected = ""; // formatted string of columns to input
 			for (int i = 0; i < SelectedColumnList.size(); i++) {
 				if (i!=SelectedColumnList.size()-1)
 					columnsSelected = columnsSelected + SelectedColumnList.get(i) + ",";
 				else
 					columnsSelected = columnsSelected + SelectedColumnList.get(i) + " ";
 			}
-			//if (columnchecks.get(columnlist.size()-1))
-				//columnsSelected += columnlist.get(columnlist.size()-1);
+			
+			// sets up SQL input and obtains result, then formats it
 			sqlStatement = "Select " + columnsSelected + "From " + input + " limit 10;";
-			System.out.println(sqlStatement);
+			// System.out.println(sqlStatement); // used for debugging
 			ResultSet columnsResult = stmt.executeQuery(sqlStatement);
+			// outputs column headers
 			for (int i = 0; i < SelectedColumnList.size(); i++) {
 				if (i!=SelectedColumnList.size()-1)
 					output = output + SelectedColumnList.get(i) + ", ";
@@ -92,6 +93,7 @@ public class jdbcpostgreSQLGUI {
 					output = output + SelectedColumnList.get(i);
 			}
 			output += "\n______________________________________________\n";
+			// outputs rows
 			while(columnsResult.next()) {
 				for (int i = 0; i < SelectedColumnList.size(); i++) {
 					if (i!=SelectedColumnList.size()-1)
@@ -102,23 +104,6 @@ public class jdbcpostgreSQLGUI {
 				output += "\n";
 			}
 			
-			/*if (input == "offensive_records")
-				sqlStatement = "SELECT player_code FROM offensive_records limit 10";
-			else if (input == "team_code")
-				sqlStatement = "SELECT name FROM teams limit 10";
-			// send statement to DBMS
-			ResultSet result = stmt.executeQuery(sqlStatement);
-
-			// OUTPUT
-			JOptionPane.showMessageDialog(null, "Player code from offensive_records");
-			// System.out.println("______________________________________");
-			while (result.next()) {
-				// System.out.println(result.getString("cus_lname"));
-				if (input == "offensive_records")
-					output += result.getString("player_code") + "\n";
-				else if (input == "team_code")
-					output += result.getString("name") + "\n";
-			}*/
 		} catch (Exception e) {
 			JOptionPane.showMessageDialog(null, "Error accessing Database.");
 		}
