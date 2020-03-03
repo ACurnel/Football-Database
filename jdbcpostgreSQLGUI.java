@@ -9,6 +9,7 @@ import java.io.FileNotFoundException;
 import java.io.PrintWriter;
 import javax.swing.JScrollPane;
 import javax.swing.JTextArea;
+import javax.swing.ImageIcon;
 
 
 //import java.sql.DriverManager;
@@ -21,6 +22,7 @@ public class jdbcpostgreSQLGUI {
 	public static void main(String args[]) throws FileNotFoundException {
 		dbSetup my = new dbSetup();
     ArrayList<String> colToJoin = new ArrayList<String>();
+    // ImageIcon icon = new ImageIcon ("nand.png");
     String finalout = "";
     String temp_outputType = "";
 		// Building the connection
@@ -34,7 +36,9 @@ public class jdbcpostgreSQLGUI {
 			System.err.println(e.getClass().getName() + ": " + e.getMessage());
 			System.exit(0);
 		} // end try catch
-		JOptionPane.showMessageDialog(null, "Opened database successfully");
+		Object[] StartQuery = {"Start a Query"};
+      
+     JOptionPane.showOptionDialog(null, "College Football Statistics Database", "Team_NAND Database", JOptionPane.YES_OPTION, JOptionPane.PLAIN_MESSAGE, null, StartQuery, null);
 		String output = "";
 		try {
 			// create a statement object
@@ -42,7 +46,7 @@ public class jdbcpostgreSQLGUI {
 			// create an SQL statement
 			// ENTITIES
 			String[] choices = { "Players", "Teams", "Seasons", "Player_Records", "Games", "Stadiums", "Positions", "Offensive_Records", "Defensive_Records", "Conferences", "Statistics", "Drives" };
-			String input = (String) JOptionPane.showInputDialog(null, "Choose now...", "What are you interested in looking up?",
+			String input = (String) JOptionPane.showInputDialog(null, "Choose now...", "Selcect entity",
 					JOptionPane.QUESTION_MESSAGE, null, // Use
 														// default
 														// icon
@@ -70,7 +74,7 @@ public class jdbcpostgreSQLGUI {
 				columncontent[i] = ColumnBoxes.get(i);
 			}
 			// Displays dialog box showing column check boxes, then creates list of desired columns
-			JOptionPane.showConfirmDialog(null, columncontent, "Which Columns Would You Like To Display?", JOptionPane.OK_OPTION);
+			JOptionPane.showConfirmDialog(null, columncontent, "Select columns", JOptionPane.DEFAULT_OPTION);
 			ArrayList<Boolean> columnchecks = new ArrayList<Boolean>(); // array of true/false values corresponding to desired columns
 			for (int i = 0; i < columnlist.size(); i++) {
 				columnchecks.add(ColumnBoxes.get(i).isSelected());
@@ -138,7 +142,7 @@ public class jdbcpostgreSQLGUI {
 
       }
 
-      JOptionPane.showConfirmDialog(null, columncontentJoin, "Which Columns Would You Like To Join?", JOptionPane.DEFAULT_OPTION);
+      JOptionPane.showConfirmDialog(null, columncontentJoin, "Select columns to join", JOptionPane.DEFAULT_OPTION);
       
       //FIXWHENMERGE: columns to print should be set to the selected entities from Alex's code
       ArrayList<String> columnsToPrint = SelectedColumnList;
@@ -211,7 +215,7 @@ public class jdbcpostgreSQLGUI {
       }
 
       //Set a boolean for each box (checked or not checked)
-      JOptionPane.showConfirmDialog(null, YearsMsgContent, "Year Selection", JOptionPane.CANCEL_OPTION); 
+      JOptionPane.showConfirmDialog(null, YearsMsgContent, "Year Selection", JOptionPane.DEFAULT_OPTION); 
       for (int i = 0; i < Years.size(); i++){
         YearBoxValues.add((Boxes.get(i)).isSelected());
       }
@@ -365,9 +369,9 @@ public class jdbcpostgreSQLGUI {
      JScrollPane scrollPane = new JScrollPane(textArea);  
      textArea.setLineWrap(true);  
      textArea.setWrapStyleWord(true); 
-     scrollPane.setPreferredSize( new Dimension( 300, 150 ) );
-       //ImageIcon icon = new ImageIcon ("put icon in directory and put name of it in here");
-       JOptionPane.showMessageDialog(null, scrollPane, "Querie Result", JOptionPane.YES_NO_OPTION);//,icon);
+     scrollPane.setPreferredSize( new Dimension( 600, 500 ) );
+       
+       JOptionPane.showMessageDialog(null, scrollPane, "Query Result", JOptionPane.YES_NO_OPTION);//,icon);
      }
 
           //text file output
