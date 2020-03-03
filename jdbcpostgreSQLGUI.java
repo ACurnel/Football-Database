@@ -64,11 +64,10 @@ public class jdbcpostgreSQLGUI {
 			}
 			// Creates check box options for each column by adding the new box and column name
 			ArrayList<JCheckBox> ColumnBoxes = new ArrayList<JCheckBox>(); // holds check boxes
-			Object[] columncontent = new Object[2*columnlist.size()];
+			Object[] columncontent = new Object[columnlist.size()];
 			for (int i = 0; i < columnlist.size(); i++) {
-				ColumnBoxes.add(new JCheckBox());
-				columncontent[(2*i)] = columnlist.get(i);
-				columncontent[(2*i)+1] = ColumnBoxes.get(i);
+				ColumnBoxes.add(new JCheckBox(columnlist.get(i)));
+				columncontent[i] = ColumnBoxes.get(i);
 			}
 			// Displays dialog box showing column check boxes, then creates list of desired columns
 			JOptionPane.showConfirmDialog(null, columncontent, "Which Columns Would You Like To Display?", JOptionPane.OK_OPTION);
@@ -205,11 +204,10 @@ public class jdbcpostgreSQLGUI {
       //Creating all of the checkboxes
       ArrayList<JCheckBox> Boxes = new ArrayList<JCheckBox>();
       ArrayList<Boolean> YearBoxValues = new ArrayList<Boolean>();
-      Object[] YearsMsgContent = new Object[2*Years.size()];
+      Object[] YearsMsgContent = new Object[Years.size()];
       for (int i = 0; i < Years.size(); i++) {
-        Boxes.add(new JCheckBox());
-        YearsMsgContent[2*i] = Years.get(i);
-        YearsMsgContent[(2*i)+1] = Boxes.get(i);
+        Boxes.add(new JCheckBox(Years.get(i)));
+        YearsMsgContent[i] = Boxes.get(i);
       }
 
       //Set a boolean for each box (checked or not checked)
