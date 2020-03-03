@@ -92,28 +92,6 @@ public class jdbcpostgreSQLGUI {
 					columnsSelected = columnsSelected + SelectedColumnList.get(i) + " ";
 			}
 			
-			// sets up SQL input and obtains result, then formats it
-			sqlStatement = "Select " + columnsSelected + "From " + input + " limit 10;";
-			// System.out.println(sqlStatement); // used for debugging
-			ResultSet columnsResult = stmt.executeQuery(sqlStatement);
-			// outputs column headers
-			for (int i = 0; i < SelectedColumnList.size(); i++) {
-				if (i!=SelectedColumnList.size()-1)
-					output = output + SelectedColumnList.get(i) + ", ";
-				else
-					output = output + SelectedColumnList.get(i);
-			}
-			output += "\n______________________________________________\n";
-			// outputs rows
-			while(columnsResult.next()) {
-				for (int i = 0; i < SelectedColumnList.size(); i++) {
-					if (i!=SelectedColumnList.size()-1)
-						output = output + columnsResult.getString(SelectedColumnList.get(i)) + ", ";
-					else
-						output = output + columnsResult.getString(SelectedColumnList.get(i));
-				}
-				output += "\n";
-			}
 
       /*****************************************************************************/
         //get names of columns
@@ -131,14 +109,36 @@ public class jdbcpostgreSQLGUI {
       Object[] columncontentJoin = new Object[2*columnsJoin.size()];
       ArrayList<String> colDisplayed = new ArrayList<String>();
       int countT = 0;
+
       for(String i : columnsJoin){
-        if(i.contains("code")){
+        // System.out.println("i="+i);
+        if( !i.equals("player_code") && input.equals("Players"))
+        if(i.contains("code") ){
           JCheckBox Box = new JCheckBox(i); 
           joinCheck.add(Box);
           columncontentJoin[(2*countT)+1] = joinCheck.get(countT++);
           colDisplayed.add(i);
         }
+
+        if(!i.equals("team_code") && input.equals("Teams"))
+          if(i.contains("code") ){
+            JCheckBox Box = new JCheckBox(i); 
+            joinCheck.add(Box);
+            columncontentJoin[(2*countT)+1] = joinCheck.get(countT++);
+            colDisplayed.add(i);
+          }
+
+          if((!input.equals("Teams")) && (!input.equals("Players")))
+            if(i.contains("code") ){
+              JCheckBox Box = new JCheckBox(i); 
+              joinCheck.add(Box);
+              columncontentJoin[(2*countT)+1] = joinCheck.get(countT++);
+              colDisplayed.add(i);
+            }
+
+
       }
+
       JOptionPane.showConfirmDialog(null, columncontentJoin, "Which Columns Would You Like To Join?", JOptionPane.DEFAULT_OPTION);
       
       //FIXWHENMERGE: columns to print should be set to the selected entities from Alex's code
@@ -284,8 +284,41 @@ public class jdbcpostgreSQLGUI {
 
       /****************************************************************************/
 
+
       joinCmd += " limit "+input_numEnt;
+      if(colToJoin.size() ==0)
+        joinCmd = "select * from teams limit 0";
       // System.out.println(joinCmd);
+
+
+            // sets up SQL input and obtains result, then formats it
+      sqlStatement = "Select " + columnsSelected + "From " + input + " "+YearsToQuery+" limit "+input_numEnt;
+      // System.out.println(sqlStatement); // used for debugging
+      ResultSet columnsResult = stmt.executeQuery(sqlStatement);
+      // outputs column headers
+      for (int i = 0; i < SelectedColumnList.size(); i++) {
+        if (i!=SelectedColumnList.size()-1)
+          output = output + SelectedColumnList.get(i) + ", ";
+        else
+          output = output + SelectedColumnList.get(i);
+      }
+      output += "\n______________________________________________\n";
+      // outputs rows
+      while(columnsResult.next()) {
+        for (int i = 0; i < SelectedColumnList.size(); i++) {
+          if (i!=SelectedColumnList.size()-1)
+            output = output + columnsResult.getString(SelectedColumnList.get(i)) + ", ";
+          else
+            output = output + columnsResult.getString(SelectedColumnList.get(i));
+        }
+        output += "\n";
+      }
+
+
+
+
+
+
       ResultSet joinRes = stmt.executeQuery(joinCmd);
       ResultSetMetaData joinResmd = joinRes.getMetaData();
 
