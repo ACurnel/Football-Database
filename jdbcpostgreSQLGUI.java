@@ -4,6 +4,12 @@ import java.util.ArrayList;
 import java.awt.event.*;
 import javax.swing.*;
 
+import java.awt.Dimension;
+import java.io.FileNotFoundException;
+import java.io.PrintWriter;
+import javax.swing.JScrollPane;
+import javax.swing.JTextArea;
+
 
 //import java.sql.DriverManager;
 /*
@@ -12,9 +18,11 @@ CSCE 315
 9-25-2019
  */
 public class jdbcpostgreSQLGUI {
-	public static void main(String args[]) {
+	public static void main(String args[]) throws FileNotFoundException {
 		dbSetup my = new dbSetup();
-    ArrayList<String> colToJoin = new ArrayList();
+    ArrayList<String> colToJoin = new ArrayList<String>();
+    String finalout = "";
+    String temp_outputType = "";
 		// Building the connection
 		Connection conn = null;
 		try {
@@ -230,7 +238,53 @@ public class jdbcpostgreSQLGUI {
       }
 
       /****************************************************************************/
-      joinCmd += YearsToQuery+" limit 10";
+      joinCmd += YearsToQuery;
+      /***************************************************************************/
+
+          //create a statement object
+       
+      
+
+       
+       //drop down to select number of results
+       String[] numEnt = {"1","2","3","4","5","10","20","30","40","50","100","250","500"};
+       String input_numEnt = (String) JOptionPane.showInputDialog(
+       null, "Select number of results desired...", "Number of Results", JOptionPane.QUESTION_MESSAGE, null, numEnt, numEnt[0]);
+       System.out.println(input_numEnt);
+       
+       //send output to file or on screen
+       String[] typeChoices = {"On Screen", "out.txt"};
+       String outputType = (String) JOptionPane.showInputDialog(
+       null, "Select output type...", "Output Type", JOptionPane.QUESTION_MESSAGE, null, typeChoices, typeChoices[0]);
+       System.out.println(outputType);
+
+       //sql command
+       // String sqlStatement = "";
+       // if(input == "offensive_records")
+       //    sqlStatement = "SELECT player_code FROM offensive_records limit " + input_numEnt;
+       // else if(input == "team_code")
+       //    sqlStatement = "SELECT name FROM teams limit " + input_numEnt;
+       // //send statement to DBMS
+       // ResultSet result = stmt.executeQuery(sqlStatement);
+
+       // //creating output
+       // while (result.next()) {
+       //  // if(input == "offensive_records")
+       //   finalout += result.getString("player_code")+"\n";
+        
+       //  else if(input == "team_code")
+       //    finalout += result.getString("name")+"\n";
+        
+       //determine output type
+       if(outputType == "On Screen") 
+         temp_outputType = "On Screen";
+       else if(outputType == "out.txt")
+         temp_outputType = "out.txt";
+       // }
+
+      /****************************************************************************/
+
+      joinCmd += " limit "+input_numEnt;
       // System.out.println(joinCmd);
       ResultSet joinRes = stmt.executeQuery(joinCmd);
       ResultSetMetaData joinResmd = joinRes.getMetaData();
@@ -247,7 +301,8 @@ public class jdbcpostgreSQLGUI {
         joinResStr += "\n";
       }
       if(colToJoin.size()>0){
-        JOptionPane.showMessageDialog(null, joinResStr);
+        // JOptionPane.showMessageDialog(null, joinResStr);
+        finalout = joinResStr;
       }
 
 
@@ -256,8 +311,36 @@ public class jdbcpostgreSQLGUI {
 		} catch (Exception e) {
 			JOptionPane.showMessageDialog(null, "Error accessing Database.");
 		}
-    if (colToJoin.size() == 0)
-		  JOptionPane.showMessageDialog(null, output);
+    if (colToJoin.size() == 0){
+		  // JOptionPane.showMessageDialog(null, output);
+      finalout = output;
+    }
+
+
+         //on screen output
+    if(temp_outputType == "On Screen") {
+       //normal output (non-scrolling)
+       //JOptionPane.showMessageDialog(null,output);
+
+       //scrolling output
+     JTextArea textArea = new JTextArea(finalout);
+     JScrollPane scrollPane = new JScrollPane(textArea);  
+     textArea.setLineWrap(true);  
+     textArea.setWrapStyleWord(true); 
+     scrollPane.setPreferredSize( new Dimension( 300, 150 ) );
+       //ImageIcon icon = new ImageIcon ("put icon in directory and put name of it in here");
+       JOptionPane.showMessageDialog(null, scrollPane, "Querie Result", JOptionPane.YES_NO_OPTION);//,icon);
+     }
+
+          //text file output
+     else if (temp_outputType == "out.txt") {
+       //send output to text file
+       PrintWriter out = new PrintWriter("out.txt");
+       out.println(finalout);
+       out.close();
+     }
+
+
 		// closing the connection
 		try {
 			conn.close();
