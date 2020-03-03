@@ -51,7 +51,7 @@ public class jdbcpostgreSQLGUI {
 			ResultSetMetaData columnstuff = columns.getMetaData();
 			int colcnt = columnstuff.getColumnCount();
 			ArrayList<String> columnlist = new ArrayList<String>(); // holds columns in input entity
-			for (int i = 1; i < colcnt; i++) {
+			for (int i = 1; i <= colcnt; i++) {
 				columnlist.add(columnstuff.getColumnName(i));
 			}
 			// Creates check box options for each column by adding the new box and column name
@@ -165,7 +165,7 @@ public class jdbcpostgreSQLGUI {
             }
           }
           joinCmd += (" from "+input+" inner join ");
-          joinCmd += ("teams on " + input +".team_code = teams.team_code limit 10");
+          joinCmd += ("teams on " + input +".team_code = teams.team_code");
 
 
         }
@@ -181,10 +181,57 @@ public class jdbcpostgreSQLGUI {
             }
           }
           joinCmd += (" from "+input+" inner join ");
-          joinCmd += ("players on "+ input +".player_code = players.player_code limit 10");
+          joinCmd += ("players on "+ input +".player_code = players.player_code");
         }
       }
-      System.out.println(joinCmd);
+
+      /****************************************************************************/
+
+
+      //Creating an array list of the years
+      ArrayList<String> Years = new ArrayList<String>();
+      for(int i=2005; i <= 2013; i++){
+        Years.add(Integer.toString(i));
+      }
+
+      //Creating all of the checkboxes
+      ArrayList<JCheckBox> Boxes = new ArrayList<JCheckBox>();
+      ArrayList<Boolean> YearBoxValues = new ArrayList<Boolean>();
+      Object[] YearsMsgContent = new Object[2*Years.size()];
+      for (int i = 0; i < Years.size(); i++) {
+        Boxes.add(new JCheckBox());
+        YearsMsgContent[2*i] = Years.get(i);
+        YearsMsgContent[(2*i)+1] = Boxes.get(i);
+      }
+
+      //Set a boolean for each box (checked or not checked)
+      JOptionPane.showConfirmDialog(null, YearsMsgContent, "Year Selection", JOptionPane.CANCEL_OPTION); 
+      for (int i = 0; i < Years.size(); i++){
+        YearBoxValues.add((Boxes.get(i)).isSelected());
+      }
+
+      //All years that were selected are placed in an array list
+      ArrayList<String> YearsSelected = new ArrayList<String>();
+      for(int i = 0; i < Years.size(); i++){
+        if(YearBoxValues.get(i) == true){
+          YearsSelected.add(Years.get(i));
+        }
+      }
+
+      //Make a string of tthe years that will be queried
+      String YearsToQuery = "";
+
+      if(YearsSelected.size() > 0){
+        YearsToQuery = " where ";
+        for(int i = 0; i < (YearsSelected.size()-1); i++){
+          YearsToQuery += (input+".year="+YearsSelected.get(i) + " or ");
+        }
+        YearsToQuery += (input+".year="+YearsSelected.get(YearsSelected.size()-1));
+      }
+
+      /****************************************************************************/
+      joinCmd += YearsToQuery+" limit 10";
+      // System.out.println(joinCmd);
       ResultSet joinRes = stmt.executeQuery(joinCmd);
       ResultSetMetaData joinResmd = joinRes.getMetaData();
 
@@ -199,12 +246,12 @@ public class jdbcpostgreSQLGUI {
         }
         joinResStr += "\n";
       }
+      if(colToJoin.size()>0){
+        JOptionPane.showMessageDialog(null, joinResStr);
+      }
 
-      JOptionPane.showMessageDialog(null, joinResStr);
 
 
-
-      /****************************************************************************/
 
 		} catch (Exception e) {
 			JOptionPane.showMessageDialog(null, "Error accessing Database.");
