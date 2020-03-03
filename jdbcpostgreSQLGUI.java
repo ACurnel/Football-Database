@@ -259,7 +259,7 @@ public class jdbcpostgreSQLGUI {
 
        
        //drop down to select number of results
-       String[] numEnt = {"1","2","3","4","5","10","20","30","40","50","100","250","500"};
+       String[] numEnt = {"1","2","3","4","5","10","20","30","40","50","100","250","500", "ALL"};
        String input_numEnt = (String) JOptionPane.showInputDialog(
        null, "Select number of results desired...", "Number of Results", JOptionPane.QUESTION_MESSAGE, null, numEnt, numEnt[0]);
        System.out.println(input_numEnt);
@@ -296,15 +296,20 @@ public class jdbcpostgreSQLGUI {
 
       /****************************************************************************/
 
-
-      joinCmd += " limit "+input_numEnt;
+      if(input_numEnt.equals("ALL"))
+        joinCmd = joinCmd;
+      else
+        joinCmd += " limit "+input_numEnt;
       if(colToJoin.size() ==0)
         joinCmd = "select * from teams limit 0";
       // System.out.println(joinCmd);
 
 
             // sets up SQL input and obtains result, then formats it
-      sqlStatement = "Select " + columnsSelected + "From " + input + " "+YearsToQuery+" limit "+input_numEnt;
+      if(input_numEnt.equals("ALL"))
+        sqlStatement = "Select " + columnsSelected + "From " + input + " "+YearsToQuery;
+      else
+        sqlStatement = "Select " + columnsSelected + "From " + input + " "+YearsToQuery+" limit "+input_numEnt;
       // System.out.println(sqlStatement); // used for debugging
       ResultSet columnsResult = stmt.executeQuery(sqlStatement);
       // outputs column headers
