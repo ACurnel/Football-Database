@@ -302,7 +302,7 @@ public class jdbcpostgreSQLGUI {
         else
           output = output + SelectedColumnList.get(i);
       }
-      output += "\n______________________________________________\n";
+      output += "\n_____________\n";
       // outputs rows
       while(columnsResult.next()) {
         for (int i = 0; i < SelectedColumnList.size(); i++) {
@@ -323,6 +323,13 @@ public class jdbcpostgreSQLGUI {
       ResultSetMetaData joinResmd = joinRes.getMetaData();
 
       String joinResStr = "";
+      for(String i: columnsToPrint){
+        if(columnsToPrint.indexOf(i) != columnsToPrint.size()-1)
+        joinResStr += i+", ";
+        else
+          joinResStr +=i+"\n";
+      }
+      joinResStr += "\n_____________\n";
 
       while(joinRes.next()){
         for(int i = 1; i <= joinResmd.getColumnCount(); i++){
