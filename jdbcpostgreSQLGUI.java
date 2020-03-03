@@ -4,7 +4,9 @@ import java.util.ArrayList;
 import java.awt.event.*;
 import javax.swing.*;
 
+import java.awt.BorderLayout;
 import java.awt.Dimension;
+import java.awt.GridLayout;
 import java.io.FileNotFoundException;
 import java.io.PrintWriter;
 import javax.swing.JScrollPane;
@@ -73,8 +75,16 @@ public class jdbcpostgreSQLGUI {
 				ColumnBoxes.add(new JCheckBox(columnlist.get(i)));
 				columncontent[i] = ColumnBoxes.get(i);
 			}
+			
+			JPanel cols = new JPanel(new BorderLayout(4,4));
+			JPanel checkpanel = new JPanel(new GridLayout(0,6));
+			cols.add(checkpanel, BorderLayout.CENTER);
+			for (int i = 0; i < ColumnBoxes.size(); i++) {
+				checkpanel.add(ColumnBoxes.get(i));
+				
+			}
 			// Displays dialog box showing column check boxes, then creates list of desired columns
-			JOptionPane.showConfirmDialog(null, columncontent, "Select columns", JOptionPane.DEFAULT_OPTION);
+			JOptionPane.showConfirmDialog(null, cols, "Select columns", JOptionPane.DEFAULT_OPTION);
 			ArrayList<Boolean> columnchecks = new ArrayList<Boolean>(); // array of true/false values corresponding to desired columns
 			for (int i = 0; i < columnlist.size(); i++) {
 				columnchecks.add(ColumnBoxes.get(i).isSelected());
