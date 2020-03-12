@@ -1,20 +1,12 @@
-package localGUI;
+//package localGUI;
 
-import java.awt.EventQueue;
+import java.awt.event.*;
+import java.awt.*;
+import javax.swing.*;
+import java.sql.*;
+import java.io.*;
+import java.util.ArrayList;
 
-import javax.swing.JFrame;
-import javax.swing.JPanel;
-import javax.swing.JScrollPane;
-import javax.swing.JLabel;
-import javax.swing.JComboBox;
-import javax.swing.JTabbedPane;
-import javax.swing.JButton;
-import javax.swing.UIManager;
-import java.awt.Font;
-import javax.swing.JTextArea;
-import javax.swing.JTable;
-import java.awt.event.ActionListener;
-import java.awt.event.ActionEvent;
 
 public class theGUI extends JFrame {
 
@@ -25,7 +17,9 @@ public class theGUI extends JFrame {
 	/**
 	 * Launch the application.
 	 */
-	public static void main(String[] args) {
+
+	Statement stmt = null;
+	public static void main(String[] args) throws FileNotFoundException{
 		EventQueue.invokeLater(new Runnable() {
 			public void run() {
 				try {
@@ -35,12 +29,15 @@ public class theGUI extends JFrame {
 					e.printStackTrace();
 				}
 			}
+
 		});
+
 	}
 
 	/**
 	 * Create the frame.
 	 */
+	String input = "";
 	public theGUI() {
 		setTitle("TEAM NAND DATABASE");
 		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
@@ -92,7 +89,7 @@ public class theGUI extends JFrame {
 		generalLabel1.setBounds(55, 6, 603, 16);
 		generalPanel.add(generalLabel1);
 		
-		JLabel generalLabel2 = new JLabel("Do NOT go back up once you have already moved forward. If you do not select anything, defaults are in place. ");
+		JLabel generalLabel2 = new JLabel("Do NOT go back up once you have already moved down. If you do not select anything, defaults are in place. ");
 		generalLabel2.setBounds(6, 24, 697, 16);
 		generalPanel.add(generalLabel2);
 		
@@ -101,10 +98,17 @@ public class theGUI extends JFrame {
 		JButton entityBtn = new JButton("Choose Entity");
 		entityBtn.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
-				new chooseEntity();
-				chooseEntity.chooseEntityScreen();
+				String[] choices = { "Players", "Teams", "Seasons", "Player_Records", "Games", "Stadiums", "Positions", "Offensive_Records", "Defensive_Records", "Conferences", "Statistics", "Drives" };
+				input = (String) JOptionPane.showInputDialog(null, "Choose now...", "Selcect entity",
+							JOptionPane.QUESTION_MESSAGE, null, // Use
+																// default
+																// icon
+							choices, // Array of choices
+							choices[0]); // Initial choice
+				// System.out.println(input);
 			}
 		});
+
 		entityBtn.setBounds(275, 64, 150, 29);
 		generalPanel.add(entityBtn);
 		
@@ -113,8 +117,75 @@ public class theGUI extends JFrame {
 		JButton columnsBtn = new JButton("Choose Columns");
 		columnsBtn.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
-				new chooseColumns();
-				chooseColumns.chooseColumnsScreen();
+				try{
+											// Building the connection
+		//conn = null;
+				Connection conn = null;
+				dbSetup my = new dbSetup();
+				try {
+
+					Class.forName("org.postgresql.Driver");
+					conn = DriverManager.getConnection("jdbc:postgresql://csce-315-db.engr.tamu.edu/team_nand", my.user,
+						my.pswd);
+				} catch (Exception f) {
+					f.printStackTrace();
+					System.err.println(f.getClass().getName() + ": " + f.getMessage());
+					System.exit(0);
+		} // end try catch	
+				stmt = conn.createStatement();
+				String sqlStatement = "";
+
+					// Queries 0 rows to parse columns
+				sqlStatement = "Select * from " + input + " limit 0";
+				ResultSet columns = stmt.executeQuery(sqlStatement);
+		      // choices = { "players", "teams", "seasons", "player_records", "games", "Stadiums", "Positions", "Offensive_Records", "Defensive_Records", "Conferences", "Statistics", "Drives" };
+
+				ResultSetMetaData columnstuff = columns.getMetaData();
+				int colcnt = columnstuff.getColumnCount();
+					ArrayList<String> columnlist = new ArrayList<String>(); // holds columns in input entity
+					for (int i = 1; i <= colcnt; i++) {
+						columnlist.add(columnstuff.getColumnName(i));
+					}
+					// Creates check box options for each column by adding the new box and column name
+					ArrayList<JCheckBox> ColumnBoxes = new ArrayList<JCheckBox>(); // holds check boxes
+					Object[] columncontent = new Object[columnlist.size()];
+					for (int i = 0; i < columnlist.size(); i++) {
+						ColumnBoxes.add(new JCheckBox(columnlist.get(i)));
+						columncontent[i] = ColumnBoxes.get(i);
+					}
+					
+					JPanel cols = new JPanel(new BorderLayout(4,4));
+					JPanel checkpanel = new JPanel(new GridLayout(0,6));
+					cols.add(checkpanel, BorderLayout.CENTER);
+					for (int i = 0; i < ColumnBoxes.size(); i++) {
+						checkpanel.add(ColumnBoxes.get(i));
+						
+					}
+					// Displays dialog box showing column check boxes, then creates list of desired columns
+					JOptionPane.showConfirmDialog(null, cols, "Select columns", JOptionPane.DEFAULT_OPTION);
+					ArrayList<Boolean> columnchecks = new ArrayList<Boolean>(); // array of true/false values corresponding to desired columns
+					for (int i = 0; i < columnlist.size(); i++) {
+						columnchecks.add(ColumnBoxes.get(i).isSelected());
+					}
+
+					ArrayList<String> SelectedColumnList = new ArrayList<String>(); // List holding desired column names
+					for (int i = 0; i < columnlist.size(); i++) {
+						if (columnchecks.get(i))
+							SelectedColumnList.add(columnlist.get(i));
+					}
+					//System.out.println(SelectedColumnList.size()); // used for debugging
+					
+					String columnsSelected = ""; // formatted string of columns to input
+					for (int i = 0; i < SelectedColumnList.size(); i++) {
+						if (i!=SelectedColumnList.size()-1)
+							columnsSelected = columnsSelected + SelectedColumnList.get(i) + ",";
+						else
+							columnsSelected = columnsSelected + SelectedColumnList.get(i) + " ";
+					}
+
+				}catch (Exception colume){
+					System.out.println("Error");
+				}
 			}
 		});
 		columnsBtn.setBounds(275, 105, 150, 29);
@@ -125,8 +196,7 @@ public class theGUI extends JFrame {
 		JButton joinBtn = new JButton("Choose Joins");
 		joinBtn.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
-				new chooseJoins();
-				chooseJoins.chooseJoinsScreen();
+		
 			}
 		});
 		joinBtn.setBounds(275, 146, 150, 29);
@@ -137,8 +207,7 @@ public class theGUI extends JFrame {
 		JButton yearsBtn = new JButton("Choose Years");
 		yearsBtn.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
-				new chooseYears();
-				chooseYears.chooseYearsScreen();
+	
 			}
 		});
 		yearsBtn.setBounds(275, 187, 150, 29);
@@ -149,8 +218,7 @@ public class theGUI extends JFrame {
 		JButton conditionalBtn = new JButton("Choose Conditional");
 		conditionalBtn.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
-				new chooseConditional();
-				chooseConditional.chooseConditionalScreen();
+		
 			}
 		});
 		conditionalBtn.setBounds(275, 228, 150, 29);
@@ -161,8 +229,7 @@ public class theGUI extends JFrame {
 		JButton outLimitBtn = new JButton("Choose Limit");
 		outLimitBtn.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
-				new chooseLimit();
-				chooseLimit.chooseLimitScreen();
+		
 			}
 		});
 		outLimitBtn.setBounds(275, 269, 150, 29);
@@ -173,8 +240,7 @@ public class theGUI extends JFrame {
 		JButton outputBtn = new JButton("Generate Result");
 		outputBtn.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
-				new generateResult();
-				generateResult.generateResultScreen();
+	
 			}
 		});
 		outputBtn.setBounds(275, 314, 150, 29);
@@ -307,6 +373,7 @@ public class theGUI extends JFrame {
 		
 		JPanel turfPanel = new JPanel();
 		tabbedPane.addTab("Turf", null, turfPanel, null);
+	
 		
 		
 	}
