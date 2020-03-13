@@ -384,6 +384,7 @@ public class theGUI extends JFrame {
 					Object[] SelectedColumnListArray = SelectedColumnList.toArray();
 					if(YearsToQuery.equals("")){
 						joinCmd += " where ";
+						// sqlStatement += " where ";
 					}
 					String conValue, conCol;
 
@@ -399,9 +400,14 @@ public class theGUI extends JFrame {
 						break;
 					}
 					conValue = JOptionPane.showInputDialog("Enter conditional value ex: (operator)value, operators: =, <=, >=:");
-					joinCmd += (" and "+input+"."+conCol+conValue+" ");
-
-					sqlStatementConditional += (" and "+input+"."+conCol+conValue+" ");
+					if(YearsToQuery.equals("")){
+						joinCmd += (" "+input+"."+conCol+conValue+" ");
+						sqlStatementConditional += (" "+input+"."+conCol+conValue+" ");
+					}
+					else{
+						joinCmd += (" and "+input+"."+conCol+conValue+" ");
+						sqlStatementConditional += (" and "+input+"."+conCol+conValue+" ");
+					}
 					
 					
 				}
@@ -482,6 +488,8 @@ public class theGUI extends JFrame {
 						SelectedColumnList.add(columnstuff.getColumnName(i));
 						}
 					}
+				if(YearsToQuery.equals("") && !sqlStatementConditional.equals(""))
+					YearsToQuery = " where ";
 				if(input_numEnt.equals(""))
 						sqlStatement = "Select " + columnsSelected + "From " + input + " "+YearsToQuery + sqlStatementConditional;
 					else
