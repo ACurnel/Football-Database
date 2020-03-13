@@ -13,12 +13,23 @@ public class theGUI extends JFrame {
 	private JPanel contentPane;
 	private JTable hfaTable;
 	private JTable vcTable;
-
+	private String joinCmd = "select ";
+	private ArrayList<String> SelectedColumnList = new ArrayList<String>(); // List holding desired column names
+	private ArrayList<String> colToJoin = new ArrayList<String>();
+	private String YearsToQuery = "";
+	private String input_numEnt;
+	private Statement stmt = null;
+	private String sqlStatement = "";
+	private String finalout = "";
+	private ArrayList<String> columnsToPrint = new ArrayList<String>();
+	private String columnsSelected = ""; // formatted string of columns to input
+	private Connection conn = null;
+	private String sqlStatementConditional = "";
 	/**
 	 * Launch the application.
 	 */
 
-	Statement stmt = null;
+	
 	public static void main(String[] args) throws FileNotFoundException{
 		EventQueue.invokeLater(new Runnable() {
 			public void run() {
@@ -120,7 +131,6 @@ public class theGUI extends JFrame {
 				try{
 											// Building the connection
 		//conn = null;
-				Connection conn = null;
 				dbSetup my = new dbSetup();
 				try {
 
@@ -133,7 +143,6 @@ public class theGUI extends JFrame {
 					System.exit(0);
 		} // end try catch	
 				stmt = conn.createStatement();
-				String sqlStatement = "";
 
 					// Queries 0 rows to parse columns
 				sqlStatement = "Select * from " + input + " limit 0";
@@ -168,19 +177,25 @@ public class theGUI extends JFrame {
 						columnchecks.add(ColumnBoxes.get(i).isSelected());
 					}
 
-					ArrayList<String> SelectedColumnList = new ArrayList<String>(); // List holding desired column names
+					
 					for (int i = 0; i < columnlist.size(); i++) {
 						if (columnchecks.get(i))
 							SelectedColumnList.add(columnlist.get(i));
 					}
 					//System.out.println(SelectedColumnList.size()); // used for debugging
 					
-					String columnsSelected = ""; // formatted string of columns to input
 					for (int i = 0; i < SelectedColumnList.size(); i++) {
 						if (i!=SelectedColumnList.size()-1)
 							columnsSelected = columnsSelected + SelectedColumnList.get(i) + ",";
 						else
 							columnsSelected = columnsSelected + SelectedColumnList.get(i) + " ";
+					}
+					if(SelectedColumnList.size()==0){
+						for(String i : columnlist){
+							SelectedColumnList.add(i);
+						}
+						columnsSelected = "*";
+
 					}
 
 				}catch (Exception colume){
@@ -196,6 +211,106 @@ public class theGUI extends JFrame {
 		JButton joinBtn = new JButton("Choose Joins");
 		joinBtn.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
+				try{
+					ResultSet resultNumCol = stmt.executeQuery("SELECT * FROM "+input+" limit 1");
+					ResultSetMetaData rsmd = resultNumCol.getMetaData();
+					ArrayList<String> columnsJoin = new ArrayList<String>();
+					for(int i = 1; i <= rsmd.getColumnCount(); i++){
+						columnsJoin.add(rsmd.getColumnName(i));
+					}
+		        
+		      // joinBoxes.setSize(150, 1000);
+		      // joinBoxes.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+					ArrayList<JCheckBox> joinCheck = new ArrayList<JCheckBox>();
+					Object[] columncontentJoin = new Object[2*columnsJoin.size()];
+					ArrayList<String> colDisplayed = new ArrayList<String>();
+					int countT = 0;
+
+					for(String i : columnsJoin){
+		        // System.out.println("i="+i);
+						if( !i.equals("player_code") && input.equals("Players"))
+							if(i.contains("code") ){
+								JCheckBox Box = new JCheckBox(i); 
+								joinCheck.add(Box);
+								columncontentJoin[(2*countT)+1] = joinCheck.get(countT++);
+								colDisplayed.add(i);
+							}
+
+							if(!i.equals("team_code") && input.equals("Teams"))
+								if(i.contains("code") ){
+									JCheckBox Box = new JCheckBox(i); 
+									joinCheck.add(Box);
+									columncontentJoin[(2*countT)+1] = joinCheck.get(countT++);
+									colDisplayed.add(i);
+								}
+
+								if((!input.equals("Teams")) && (!input.equals("Players")))
+									if(i.contains("code") ){
+										JCheckBox Box = new JCheckBox(i); 
+										joinCheck.add(Box);
+										columncontentJoin[(2*countT)+1] = joinCheck.get(countT++);
+										colDisplayed.add(i);
+									}
+
+
+								}
+
+								JOptionPane.showConfirmDialog(null, columncontentJoin, "Select columns to join", JOptionPane.DEFAULT_OPTION);
+
+		      //FIXWHENMERGE: columns to print should be set to the selected entities from Alex's code
+								columnsToPrint = SelectedColumnList;
+		      // columnsToPrint.add("team_code");
+		      // columnsToPrint.add("drive_number");
+		      // columnsToPrint.add("start_period");
+		      // columnsToPrint.add("yards");
+
+		      // colToJoin = new ArrayList<String>();
+								for(int i = 0; i < joinCheck.size(); i++){
+									if(joinCheck.get(i).isSelected())
+										colToJoin.add(colDisplayed.get(i));
+								}
+
+
+		      //FIXWHENMERGE: remove limits and ensure they are taken care of elsewhere
+		      //FIXWHENMERGE: ensure input is current entity selected 
+								input = input.toLowerCase();
+								for(String i: colToJoin){
+
+									if(i.equals("team_code") ){
+										joinCmd += ("teams.name, ");
+										for(String j: columnsToPrint){
+											if(colToJoin.contains(j) == false){
+												joinCmd += (input+"."+j);
+												if (columnsToPrint.indexOf(j) != columnsToPrint.size()-1)
+													joinCmd += ", ";
+												else
+													joinCmd += " ";
+											}
+										}
+										joinCmd += (" from "+input+" inner join ");
+										joinCmd += ("teams on " + input +".team_code = teams.team_code");
+
+
+									}
+									else if(i.equals("player_code")){
+										joinCmd += ("players.first_name, players.last_name, ");
+										for(String j: columnsToPrint){
+											if(colToJoin.contains(j) == false){
+												joinCmd += (input+"."+j);
+												if (columnsToPrint.indexOf(j) != columnsToPrint.size()-1)
+													joinCmd += ", ";
+												else
+													joinCmd += " ";
+											}
+										}
+										joinCmd += (" from "+input+" inner join ");
+										joinCmd += ("players on "+ input +".player_code = players.player_code");
+									}
+								}
+
+				}catch (Exception joinE){
+					System.out.println("Error 404: 0x1df9999032");
+				}
 		
 			}
 		});
@@ -207,6 +322,52 @@ public class theGUI extends JFrame {
 		JButton yearsBtn = new JButton("Choose Years");
 		yearsBtn.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
+				try{
+					//Creating an array list of the years
+					ArrayList<String> Years = new ArrayList<String>();
+					for(int i=2005; i <= 2013; i++){
+						Years.add(Integer.toString(i));
+					}
+
+		      //Creating all of the checkboxes
+					ArrayList<JCheckBox> Boxes = new ArrayList<JCheckBox>();
+					ArrayList<Boolean> YearBoxValues = new ArrayList<Boolean>();
+					Object[] YearsMsgContent = new Object[Years.size()];
+					for (int i = 0; i < Years.size(); i++) {
+						Boxes.add(new JCheckBox(Years.get(i)));
+						YearsMsgContent[i] = Boxes.get(i);
+					}
+
+		      //Set a boolean for each box (checked or not checked)
+					JOptionPane.showConfirmDialog(null, YearsMsgContent, "Year Selection", JOptionPane.DEFAULT_OPTION); 
+					for (int i = 0; i < Years.size(); i++){
+						YearBoxValues.add((Boxes.get(i)).isSelected());
+					}
+
+		      //All years that were selected are placed in an array list
+					ArrayList<String> YearsSelected = new ArrayList<String>();
+					for(int i = 0; i < Years.size(); i++){
+						if(YearBoxValues.get(i) == true){
+							YearsSelected.add(Years.get(i));
+						}
+					}
+
+		      //Make a string of tthe years that will be queried
+
+					if(YearsSelected.size() > 0){
+						YearsToQuery = " where ";
+						for(int i = 0; i < (YearsSelected.size()-1); i++){
+							YearsToQuery += (input+".year="+YearsSelected.get(i) + " or ");
+						}
+						YearsToQuery += (input+".year="+YearsSelected.get(YearsSelected.size()-1));
+					}
+
+					/****************************************************************************/
+					joinCmd += YearsToQuery;
+
+				} catch (Exception yearsE){
+
+				}
 	
 			}
 		});
@@ -218,6 +379,36 @@ public class theGUI extends JFrame {
 		JButton conditionalBtn = new JButton("Choose Conditional");
 		conditionalBtn.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
+				try{
+					SelectedColumnList.add("done");
+					Object[] SelectedColumnListArray = SelectedColumnList.toArray();
+					if(YearsToQuery.equals("")){
+						joinCmd += " where ";
+					}
+					String conValue, conCol;
+
+					while(true){
+					conCol = (String) JOptionPane.showInputDialog(null, "Select column for conditional value", "",
+							JOptionPane.QUESTION_MESSAGE, null, // Use
+																// default
+																// icon
+							SelectedColumnListArray, // Array of choices
+							SelectedColumnListArray[0]); // Initial choice
+					if(conCol.equals("done")){
+						SelectedColumnList.remove(SelectedColumnList.size()-1);
+						break;
+					}
+					conValue = JOptionPane.showInputDialog("Enter conditional value ex: (operator)value, operators: =, <=, >=:");
+					joinCmd += (" and "+input+"."+conCol+conValue+" ");
+
+					sqlStatementConditional += (" and "+input+"."+conCol+conValue+" ");
+					
+					
+				}
+
+				} catch (Exception conditionalE){
+					System.out.println("Error 404: 0x2feab211");
+				}
 		
 			}
 		});
@@ -229,6 +420,15 @@ public class theGUI extends JFrame {
 		JButton outLimitBtn = new JButton("Choose Limit");
 		outLimitBtn.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
+				try{
+					//drop down to select number of results
+					input_numEnt = (String) JOptionPane.showInputDialog("Enter number of desired results, leave blank for full list");
+					if(!input_numEnt.equals(""))
+						joinCmd += (" limit "+input_numEnt);
+					System.out.println("input_numEnt: "+input_numEnt);
+				} catch (Exception limitE){
+					System.out.println("Error 404: 0xFFFFFF");
+				}
 		
 			}
 		});
@@ -240,7 +440,133 @@ public class theGUI extends JFrame {
 		JButton outputBtn = new JButton("Generate Result");
 		outputBtn.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
-	
+				try{
+					String output = "";
+					 //send output to file or on screen
+					String[] typeChoices = {"On Screen", "out.txt"};
+					String outputType = (String) JOptionPane.showInputDialog(
+						null, "Select output type...", "Output Type", JOptionPane.QUESTION_MESSAGE, null, typeChoices, typeChoices[0]);
+					System.out.println(outputType);
+
+					if(colToJoin.size() ==0)
+						joinCmd = "select * from teams limit 0";
+		      // System.out.println(joinCmd);
+
+		            // sets up SQL input and obtains result, then formats it
+		            // System.out.println("columns selected: "+columnsSelected+"|");
+		           // System.out.println("Columns selected:"+columnsSelected+"|");
+					if(columnsSelected.equals("")){
+						dbSetup my = new dbSetup();
+						try {
+							Class.forName("org.postgresql.Driver");
+							conn = DriverManager.getConnection("jdbc:postgresql://csce-315-db.engr.tamu.edu/team_nand", my.user,
+								my.pswd);
+						} catch (Exception f) {
+							f.printStackTrace();
+							System.err.println(f.getClass().getName() + ": " + f.getMessage());
+							System.exit(0);
+						} // end try catch	
+						columnsSelected = " * ";
+						stmt = conn.createStatement();
+
+						//ensure selectedColumnList is correct when all columns are selected
+										// Queries 0 rows to parse columns
+						String tempStatement = "Select * from " + input + " limit 0";
+						ResultSet columns = stmt.executeQuery(tempStatement);
+		      // choices = { "players", "teams", "seasons", "player_records", "games", "Stadiums", "Positions", "Offensive_Records", "Defensive_Records", "Conferences", "Statistics", "Drives" };
+
+						ResultSetMetaData columnstuff = columns.getMetaData();
+						int colcnt = columnstuff.getColumnCount();
+						ArrayList<String> columnlist = new ArrayList<String>(); // holds columns in input entity
+						for (int i = 1; i <= colcnt; i++) {
+						SelectedColumnList.add(columnstuff.getColumnName(i));
+						}
+					}
+				if(input_numEnt.equals(""))
+						sqlStatement = "Select " + columnsSelected + "From " + input + " "+YearsToQuery + sqlStatementConditional;
+					else
+						sqlStatement = "Select " + columnsSelected + "From " + input + " "+YearsToQuery+sqlStatementConditional+" limit "+input_numEnt;
+
+		      System.out.println(sqlStatement); // used for debugging
+		      ResultSet columnsResult = stmt.executeQuery(sqlStatement);
+		      // outputs column headers
+					for (int i = 0; i < SelectedColumnList.size(); i++) {
+						if (i!=SelectedColumnList.size()-1)
+							output = output + SelectedColumnList.get(i) + ", ";
+						else
+							output = output + SelectedColumnList.get(i);
+					}
+					output += "\n_____________\n";
+		      // outputs rows
+					while(columnsResult.next()) {
+						for (int i = 0; i < SelectedColumnList.size(); i++) {
+							if (i!=SelectedColumnList.size()-1)
+								output = output + columnsResult.getString(SelectedColumnList.get(i)) + ", ";
+							else
+								output = output + columnsResult.getString(SelectedColumnList.get(i));
+						}
+						output += "\n";
+					}
+
+
+
+					System.out.println("joinCmd: "+joinCmd);
+
+					ResultSet joinRes = stmt.executeQuery(joinCmd);
+					ResultSetMetaData joinResmd = joinRes.getMetaData();
+
+					String joinResStr = "";
+					for(String i: columnsToPrint){
+						if(columnsToPrint.indexOf(i) != columnsToPrint.size()-1)
+							joinResStr += i+", ";
+						else
+							joinResStr +=i+"\n";
+					}
+					joinResStr += "\n_____________\n";
+
+					while(joinRes.next()){
+						for(int i = 1; i <= joinResmd.getColumnCount(); i++){
+							if(i != joinResmd.getColumnCount())
+								joinResStr += joinRes.getString(i)+", ";
+							else
+								joinResStr += joinRes.getString(i);
+						}
+						joinResStr += "\n";
+					}
+					if(colToJoin.size()>0){
+		        // JOptionPane.showMessageDialog(null, joinResStr);
+						finalout = joinResStr;
+					}
+					else
+						finalout = output;
+
+					      //on screen output
+					if(outputType == "On Screen") {
+		       //normal output (non-scrolling)
+		       //JOptionPane.showMessageDialog(null,output);
+
+		       //scrolling output
+						JTextArea textArea = new JTextArea(finalout);
+						JScrollPane scrollPane = new JScrollPane(textArea);  
+						textArea.setLineWrap(true);  
+						textArea.setWrapStyleWord(true); 
+						scrollPane.setPreferredSize( new Dimension( 600, 500 ) );
+
+		       JOptionPane.showMessageDialog(null, scrollPane, "Query Result", JOptionPane.YES_NO_OPTION);//,icon);
+		   }
+
+		          //text file output
+		   else if (outputType == "out.txt") {
+		       //send output to text file
+		   	PrintWriter out = new PrintWriter("out.txt");
+		   	out.println(finalout);
+		   	out.close();
+		   }
+
+		}catch (Exception genE){
+					System.out.println("Error 404: 0x000000 "+genE);
+				}
+
 			}
 		});
 		outputBtn.setBounds(275, 314, 150, 29);
