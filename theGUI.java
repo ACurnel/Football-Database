@@ -1207,10 +1207,302 @@ public class theGUI extends JFrame {
 		
 		//******************************* QUESTION 5 *******************************\\
 		
-		JPanel turfPanel = new JPanel();
+JPanel turfPanel = new JPanel();
 		tabbedPane.addTab("Turf", null, turfPanel, null);
-	
+		turfPanel.setLayout(null);
 		
+		JLabel turfLabel = new JLabel("Input a given team and year to get their alltime stadium material performance statistics in that conference.");
+		turfLabel.setBounds(70, 38, 750, 32);
+		turfPanel.add(turfLabel);
+		
+
+		JComboBox turfTeamList = new JComboBox();
+		turfTeamList.setMaximumRowCount(256);
+		turfTeamList.setBounds(120, 111, 182, 27);
+		turfPanel.add(turfTeamList);
+		
+		JComboBox turfYearList = new JComboBox();
+		turfYearList.setMaximumRowCount(256);
+		turfYearList.setBounds(330, 111, 60, 27);
+		turfPanel.add(turfYearList);
+		
+		JTextArea turfOutput = new JTextArea();
+		turfOutput.setEditable(false);
+		turfOutput.setBounds(282, 209, 200, 160);
+		turfPanel.add(turfOutput);
+		
+		JLabel turfOutputLabel = new JLabel("Output");
+		turfOutputLabel.setBounds(340, 187, 61, 16);
+		turfPanel.add(turfOutputLabel);
+		
+		JButton turfButton = new JButton("Generate Result");
+		turfButton.setBounds(420, 110, 190, 29);
+		turfPanel.add(turfButton);
+		
+		JLabel turfTeamLabel = new JLabel("Team");
+		turfTeamLabel.setBounds(200, 95, 61, 16);
+		turfPanel.add(turfTeamLabel);
+		
+		JLabel turfYearLabel = new JLabel("Year");
+		turfYearLabel.setBounds(345, 95, 61, 16);
+		turfPanel.add(turfYearLabel);
+		
+		turfsqlStatement = "select distinct name from Teams order by name ASC;";
+		try {
+			
+			try {
+				dbSetup turfmy = new dbSetup();
+				Class.forName("org.postgresql.Driver");
+				conn = DriverManager.getConnection("jdbc:postgresql://csce-315-db.engr.tamu.edu/team_nand", turfmy.user,
+					turfmy.pswd);
+			} catch (Exception turff) {
+				turff.printStackTrace();
+				System.err.println(turff.getClass().getName() + ": " + turff.getMessage());
+				System.exit(0);
+			} // end try catch	
+			stmt = conn.createStatement();
+			ResultSet turfTeamNames = stmt.executeQuery(turfsqlStatement);
+			while (turfTeamNames.next()) {
+					turfTeamList.addItem(turfTeamNames.getString(1));
+			}
+			ResultSet turfYears = stmt.executeQuery("Select distinct year from Teams order by year DESC;");
+			while (turfYears.next()) {
+				turfYearList.addItem(turfYears.getString(1));
+			}
+			turfButton.addActionListener(new ActionListener() {
+		         public void actionPerformed(ActionEvent e) {
+		            String turfTeam = (String)turfTeamList.getSelectedItem();
+		            String turfYear = (String)turfYearList.getSelectedItem();
+		            String turfTeamCode = "";
+		            String turfConferenceCode = "";
+		            turfsqlStatement = "select distinct team_code, conference_code from Teams where name = '" + turfTeam + "' and year = '" + turfYear + "';";
+		            try {
+		            	ResultSet turfTC = stmt.executeQuery(turfsqlStatement);
+		            	while (turfTC.next()) {
+		            		turfTeamCode = turfTC.getString(1);
+		            		turfConferenceCode = turfTC.getString(2);
+		            	}
+		            	
+		            	turfsqlStatement = ""
+		            	+"CREATE VIEW turfplay_count(game_code, count) AS "
+		            	+"SELECT game_code, COUNT(play_number) FROM games GROUP BY game_code; "
+
+		            	+"CREATE VIEW turfoffense_team(game_code, play, year, offense_team, offense_points, count, conference_code) AS "
+		            	+"SELECT games.game_code, max(games.play_number), seasons.year, teams.name, MAX(games.offense_points), turfplay_count.count, teams.conference_code FROM games "
+		            	+"INNER JOIN seasons ON games.game_code = seasons.game_code "
+		            	+"INNER JOIN teams ON teams.team_code = games.offense_team_code "
+		            	+"INNER JOIN turfplay_count ON games.game_code = turfplay_count.game_code "
+		            	+"WHERE turfplay_count.count = games.play_number "
+		            	+"GROUP BY games.game_code, seasons.year, teams.name, turfplay_count.count, teams.conference_code; "
+
+		            	+"CREATE VIEW turfdefense_team(game_code, play, year, defense_team, defense_points, conference_code) AS "
+		            	+"SELECT games.game_code, max(games.play_number), seasons.year, teams.name, MAX(games.defense_points), teams.conference_code FROM games "
+		            	+"INNER JOIN seasons ON games.game_code = seasons.game_code "
+		            	+"INNER JOIN teams ON teams.team_code = games.defense_team_code "
+		            	+"INNER JOIN turfplay_count ON games.game_code = turfplay_count.game_code "
+		            	+"WHERE turfplay_count.count = games.play_number "
+		            	+"GROUP BY games.game_code, seasons.year, teams.name, turfplay_count.count, teams.conference_code; "
+
+		            	+"CREATE VIEW turfgames AS "
+		            	+"SELECT turfoffense_team.game_code, turfoffense_team.year, turfoffense_team.offense_team, turfoffense_team.offense_points, turfdefense_team.defense_team, turfdefense_team.defense_points, seasons.stadium_code, turfoffense_team.conference_code "
+		            	+"FROM turfoffense_team "
+		            	+"INNER JOIN turfdefense_team ON turfoffense_team.game_code = turfdefense_team.game_code AND turfoffense_team.conference_code = turfdefense_team.conference_code "
+		            	+"INNER JOIN seasons ON seasons.game_code = turfoffense_team.game_code "
+		            	+"WHERE turfoffense_team.offense_team != turfdefense_team.defense_team AND turfoffense_team.conference_code = turfdefense_team.conference_code "
+		            	+"GROUP BY turfoffense_team.game_code, turfoffense_team.play, turfoffense_team.year, turfoffense_team.offense_team, turfoffense_team.offense_points, turfdefense_team.defense_team, turfdefense_team.defense_points, seasons.stadium_code, turfoffense_team.conference_code "
+		            	+"ORDER BY turfoffense_team.year ASC; ";
+		            	stmt.execute(turfsqlStatement);
+		            	
+		            	turfsqlStatement = 
+		            	"SELECT distinct turfgames.game_code, turfgames.conference_code, stadiums.surface, turfgames.offense_team, turfgames.offense_points, turfgames.defense_team, turfgames.defense_points "
+		            	+"FROM turfgames "
+		            	+"INNER JOIN stadiums ON turfgames.stadium_code = stadiums.stadium_code "
+		            	+"WHERE turfgames.conference_code = " + turfConferenceCode + " AND (turfgames.offense_team = '"+turfTeam+"' OR turfgames.defense_team = '"+turfTeam+"');";
+		            	int AstroTurf = 0;
+		            	int AstroPlay = 0;
+		            	int Grass = 0;
+		            	int SoftTop = 0;
+		            	int SportsTurf = 0;
+		            	int SportexeM = 0;
+		            	int ProGrass = 0;
+		            	int ProPlay = 0;
+		            	int SportexePB = 0;
+		            	int TurfTech = 0;
+		            	int ATurf = 0;
+		            	int PrestigeSystem = 0;
+		            	int FieldTurf = 0;
+		            	int NexTurf = 0;
+		            	int AstroTurfW = 0;
+		            	int AstroPlayW = 0;
+		            	int GrassW = 0;
+		            	int SoftTopW = 0;
+		            	int SportsTurfW = 0;
+		            	int SportexeMW = 0;
+		            	int ProGrassW = 0;
+		            	int ProPlayW = 0;
+		            	int SportexePBW = 0;
+		            	int TurfTechW = 0;
+		            	int ATurfW = 0;
+		            	int PrestigeSystemW = 0;
+		            	int FieldTurfW = 0;
+		            	int NexTurfW = 0;
+		            	int turfTeamPts = 0;
+		            	int turfOppPts = 0;
+		            	Boolean turfWin = false;
+		            	ResultSet turfStats = stmt.executeQuery(turfsqlStatement);
+		            	while (turfStats.next()) {
+		            		if (turfTeam.equals(turfStats.getString(4))) {
+		            			turfTeamPts = turfStats.getInt(5);
+		            			turfOppPts = turfStats.getInt(7);
+		            		}
+		            		else {
+		            			turfTeamPts = turfStats.getInt(7);
+		            			turfOppPts = turfStats.getInt(5);
+		            		}
+		            		if (turfTeamPts > turfOppPts) turfWin = true;
+		            		else turfWin = false;
+		            		switch (turfStats.getString(3)) {
+		            		case "AstroTurf":
+		            			if (turfWin) AstroTurfW++;
+		            			AstroTurf++;
+		            			break;
+		            		case "AstroPlay":
+		            			if (turfWin) AstroPlayW++;
+		            			AstroPlay++;
+		            			break;
+		            		case "Grass":
+		            			if (turfWin) GrassW++;
+		            			Grass++;
+		            			break;
+		            		case "SoftTop Turf System":
+		            			if (turfWin) SoftTopW++;
+		            			SoftTop++;
+		            			break;
+		            		case "SportsTurf":
+		            			if (turfWin) SportsTurfW++;
+		            			SportsTurf++;
+		            			break;
+		            		case "Sportexe Momentum":
+		            			if (turfWin) SportexeMW++;
+		            			SportexeM++;
+		            			break;
+		            		case "ProGrass":
+		            			if (turfWin) ProGrassW++;
+		            			ProGrass++;
+		            			break;
+		            		case "ProPlay":
+		            			if (turfWin) ProPlayW++;
+		            			ProPlay++;
+		            			break;
+		            		case "Sportexe PowerBlade":
+		            			if (turfWin) SportexePBW++;
+		            			SportexePB++;
+		            			break;
+		            		case "TurfTech":
+		            			if (turfWin) TurfTechW++;
+		            			TurfTech++;
+		            			break;
+		            		case "A-Turf":
+		            			if (turfWin) ATurfW++;
+		            			ATurf++;
+		            			break;
+		            		case "Prestige System":
+		            			if (turfWin) PrestigeSystemW++;
+		            			PrestigeSystem++;
+		            			break;
+		            		case "FieldTurf":
+		            			if (turfWin) FieldTurfW++;
+		            			FieldTurf++;
+		            			break;
+		            		case "NexTurf":
+		            			if (turfWin) NexTurfW++;
+		            			NexTurf++;
+		            			break;
+		            		default:
+		            		}
+		            	}
+		            	stmt.execute("DROP VIEW turfplay_count CASCADE;");
+		            	ArrayList<String> turfsUsed = new ArrayList<String>();
+		            	ArrayList<Double> turfsUsedPercent = new ArrayList<Double>();
+		            	if (AstroTurf>0) {
+		            		turfsUsed.add("AstroTurf");
+		            		turfsUsedPercent.add(100*((double)AstroTurfW/AstroTurf));
+		            	}
+		            	if (AstroPlay>0) {
+		            		turfsUsed.add("AstroPlay");
+		            		turfsUsedPercent.add(100*((double)AstroPlayW/AstroPlay));
+		            	}
+		            	if (Grass>0) {
+		            		// System.out.println(GrassW);
+		            		// System.out.println(Grass);
+		            		turfsUsed.add("Grass");
+		            		turfsUsedPercent.add(100*((double)GrassW/Grass));
+		            	}
+		            	if (SoftTop>0) {
+		            		turfsUsed.add("SoftTop Turf System");
+		            		turfsUsedPercent.add(100*((double)SoftTopW/SoftTop));
+		            	}
+		            	if (SportsTurf>0) {
+		            		turfsUsed.add("SportsTurf");
+		            		turfsUsedPercent.add(100*((double)SportsTurfW/SportsTurf));
+		            	}
+		            	if (SportexeM>0) {
+		            		turfsUsed.add("Sportexe Momentum");
+		            		turfsUsedPercent.add(100*((double)SportexeMW/SportexeM));
+		            	}
+		            	if (ProGrass>0) {
+		            		turfsUsed.add("ProGrass");
+		            		turfsUsedPercent.add(100*((double)ProGrassW/ProGrass));
+		            	}
+		            	if (ProPlay>0) {
+		            		turfsUsed.add("ProPlay");
+		            		turfsUsedPercent.add(100*((double)ProPlayW/ProPlay));
+		            	}
+		            	if (SportexePB>0) {
+		            		turfsUsed.add("Sportexe Momentum");
+		            		turfsUsedPercent.add(100*((double)SportexePBW/SportexePB));
+		            	}
+		            	if (TurfTech>0) {
+		            		turfsUsed.add("TurfTech");
+		            		turfsUsedPercent.add(100*((double)TurfTechW/TurfTech));
+		            	}
+		            	if (ATurf>0) {
+		            		turfsUsed.add("A-Turf");
+		            		turfsUsedPercent.add(100*((double)ATurfW/ATurf));
+		            	}
+		            	if (PrestigeSystem>0) {
+		            		turfsUsed.add("Prestige System");
+		            		turfsUsedPercent.add(100*((double)PrestigeSystemW/PrestigeSystem));
+		            	}
+		            	if (FieldTurf>0) {
+		            		turfsUsed.add("FieldTurf");
+		            		turfsUsedPercent.add(100*((double)FieldTurfW/FieldTurf));
+		            	}
+		            	if (NexTurf>0) {
+		            		turfsUsed.add("NexTurf");
+		            		turfsUsedPercent.add(100*((double)NexTurfW/NexTurf));
+		            	}
+		            	String TurfOutput = "Turf        Win Percentage\n_________________________\n";
+		            	if (turfsUsed.size()>0) {
+			            	for (int i = 0; i < turfsUsed.size(); i++) {
+			            		TurfOutput = TurfOutput + turfsUsed.get(i) + "    " + String.format("%.2f", (turfsUsedPercent.get(i))) + "%\n";
+			            	}
+		            	}
+		            	else TurfOutput = "Not enough turf data available :(";
+		            	turfOutput.setText(TurfOutput);
+		            } catch (Exception turfe) {
+		    			turfe.printStackTrace();
+		    		}
+		            
+		         }
+			});
+			
+			
+		} catch (Exception turfe1) {
+			turfe1.printStackTrace();
+		}
 		
 	}
 }
+	
+		
