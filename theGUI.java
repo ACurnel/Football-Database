@@ -1,4 +1,4 @@
-package localGUI;
+//package localGUI;
 
 import java.awt.event.*;
 import java.awt.*;
@@ -30,6 +30,10 @@ public class theGUI extends JFrame {
 	private String sjCmd;
 	private ArrayList<String> SelectedColumnListE1 = new ArrayList<String>();
 	private ArrayList<String> SelectedColumnListE2 = new ArrayList<String>();
+	private ArrayList<String> columnlist = new ArrayList<String>();
+	private ArrayList<String> columnlistEntity1 = new ArrayList<String>();
+	private ArrayList<String> savedSelectedColumnListE1 = new ArrayList<String>();
+	private ArrayList<String> savedSelectedColumnListE2 = new ArrayList<String>();
 	
 	/**
 	 * Launch the application.
@@ -639,7 +643,7 @@ public class theGUI extends JFrame {
 				
 				ResultSetMetaData columnstuff = columns.getMetaData();
 				int colcnt = columnstuff.getColumnCount();
-				ArrayList<String> columnlist = new ArrayList<String>(); // holds columns in input entity
+				// A columnlist = new ArrayList<String>(); // holds columns in input entity
 				for (int i = 1; i <= colcnt; i++) {
 				columnlist.add(columnstuff.getColumnName(i));
 				}
@@ -678,8 +682,10 @@ public class theGUI extends JFrame {
 				columnstuff = columns.getMetaData();
 				colcnt = columnstuff.getColumnCount();
 
+				columnlistEntity1 = new ArrayList<String>(columnlist);
+				columnlist.clear();
 				for (int i = 1; i <= colcnt; i++) {
-				columnlist.add(columnstuff.getColumnName(i));
+					columnlist.add(columnstuff.getColumnName(i));
 				}
 				// Creates check box options for each column by adding the new box and column name
 				ColumnBoxes = new ArrayList<JCheckBox>(); // holds check boxes
@@ -818,6 +824,12 @@ public class theGUI extends JFrame {
 		sjConditionalBtn.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
 				try{
+
+					savedSelectedColumnListE1 = new ArrayList<String>(SelectedColumnListE1);
+					savedSelectedColumnListE2 = new ArrayList<String>(SelectedColumnListE2);
+
+					SelectedColumnListE1 = columnlistEntity1;
+					SelectedColumnListE2 = columnlist;
 					SelectedColumnListE1.add("done");
 					SelectedColumnListE2.add("done");
 					Object[] SelectedColumnListE1Array = SelectedColumnListE1.toArray();
@@ -924,6 +936,9 @@ public class theGUI extends JFrame {
 					String finalout = "";
 					
 					//setting up column headers
+					SelectedColumnListE1 = new ArrayList<String>(savedSelectedColumnListE1);
+					SelectedColumnListE2 = new ArrayList<String>(savedSelectedColumnListE2);
+
 					for (int i = 0; i < SelectedColumnListE1.size(); i++) {
 						if (i<= SelectedColumnListE1.size()-1)
 							finalout += SelectedColumnListE1.get(i) + ", ";
