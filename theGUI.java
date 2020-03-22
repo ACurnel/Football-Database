@@ -1334,7 +1334,7 @@ while(VCTableSet.next()){
 		
 		JTextArea ryOutput = new JTextArea();
 		ryOutput.setEditable(false);
-		ryOutput.setBounds(282, 209, 250, 27);
+		ryOutput.setBounds(230, 214, 250, 27);
 		q3Panel.add(ryOutput);
 		
 		JLabel ryOutputLabel = new JLabel("Output");
@@ -1495,11 +1495,11 @@ JPanel q4Panel = new JPanel();
 
 		JComboBox confrenceList = new JComboBox(confrences);   //compiler warnings
 		confrenceList.setMaximumRowCount(12);
-		confrenceList.setBounds(206, 87, 250, 27);
+		confrenceList.setBounds(119, 87, 250, 27);
 		q4Panel.add(confrenceList);
 		
 		JLabel conferenceLabel = new JLabel("Conference");
-		conferenceLabel.setBounds(206, 70, 126, 16);
+		conferenceLabel.setBounds(217, 70, 126, 16);
 		q4Panel.add(conferenceLabel);
 		
 		class teamName_winPercentage{
@@ -1515,15 +1515,15 @@ JPanel q4Panel = new JPanel();
 			String str2;
 		}
 		JButton hfaButton = new JButton("Generate Result");
-				hfaButton.setBounds(475, 86, 187, 29); //385
+				hfaButton.setBounds(392, 86, 187, 29); //385
 		q4Panel.add(hfaButton);
 		
 		JLabel hfaOutputLabel = new JLabel("Output");
-		hfaOutputLabel.setBounds(338, 126, 100, 16);
+		hfaOutputLabel.setBounds(328, 125, 100, 16);
 		q4Panel.add(hfaOutputLabel);
 		
 		JScrollPane hfaScrollPane = new JScrollPane();
-		hfaScrollPane.setBounds(230, 154, 300, 185);
+		hfaScrollPane.setBounds(199, 153, 300, 185);
 		q4Panel.add(hfaScrollPane);
 		
 		DefaultTableModel hfaModel = new DefaultTableModel();
@@ -1658,7 +1658,7 @@ JPanel turfPanel = new JPanel();
 		
 		JTextArea turfOutput = new JTextArea();
 		turfOutput.setEditable(false);
-		turfOutput.setBounds(282, 209, 200, 160);
+		turfOutput.setBounds(261, 208, 200, 160);
 		turfPanel.add(turfOutput);
 		
 		JLabel turfOutputLabel = new JLabel("Output");
