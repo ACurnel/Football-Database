@@ -998,7 +998,123 @@ public class theGUI extends JFrame {
 		
 		
 		//******************************* QUESTION 1 *******************************\\
+
+		class GameNode {
+
+	private int GYear;
+	private String GWinner;
+	private String GLoser;
+
+	public GameNode(int y, String W, String L){
+		GYear = y;
+		GWinner = W;
+		GLoser = L;
+	}
+
+	public int getGYear() {
+		return GYear;
+	}
+
+	public String getGWinner() {
+		return GWinner;
+	}
+
+	public String getGLoser() {
+		return GLoser;
+	}
+
+	public String GPrint() {
+		return (GWinner + " beat " + GLoser + " in " + GYear);
+	}
+}
 		
+try{
+			// Building the connection
+//conn = null;
+dbSetup my = new dbSetup();
+try {
+
+Class.forName("org.postgresql.Driver");
+conn = DriverManager.getConnection("jdbc:postgresql://csce-315-db.engr.tamu.edu/team_nand", my.user,
+my.pswd);
+} catch (Exception f) {
+f.printStackTrace();
+System.err.println(f.getClass().getName() + ": " + f.getMessage());
+System.exit(0);
+} // end try catch	
+stmt = conn.createStatement();
+
+String sqlstmnt = "Select DISTINCT name from teams ORDER BY name";
+ResultSet teamname = stmt.executeQuery(sqlstmnt);
+ArrayList<String> teamnamelist = new ArrayList<String>(); // holds columns in input entity
+while(teamname.next()){
+
+	teamnamelist.add(teamname.getString("name"));
+
+}
+String[] teamnamearray = teamnamelist.toArray(new String[teamnamelist.size()]);
+
+ArrayList<GameNode> GameList = new ArrayList<GameNode>();
+// String sqlVCTable1 = ("CREATE VIEW play_cnt(game_code, count) AS "
+// +"SELECT game_code, COUNT(play_number) FROM games GROUP BY game_code;"
+// +"CREATE VIEW offense_tm(game_code, play, year, offense_team, offense_points, count) AS "
+// +"SELECT games.game_code, max(games.play_number), seasons.year, teams.name, MAX(games.offense_points), play_cnt.count FROM games "
+// +"INNER JOIN seasons ON games.game_code = seasons.game_code "
+// +"INNER JOIN teams ON teams.team_code = games.offense_team_code "
+// +"INNER JOIN play_cnt ON games.game_code = play_cnt.game_code "
+// +"WHERE play_cnt.count = games.play_number "
+// +"GROUP BY games.game_code, seasons.year, teams.name, play_cnt.count;"
+// +"CREATE VIEW defense_tm(game_code, play, year, defense_team, defense_points) AS "
+// +"SELECT games.game_code, max(games.play_number), seasons.year, teams.name, MAX(games.defense_points) FROM games "
+// +"INNER JOIN seasons ON games.game_code = seasons.game_code "
+// +"INNER JOIN teams ON teams.team_code = games.defense_team_code "
+// +"INNER JOIN play_cnt ON games.game_code = play_cnt.game_code "
+// +"WHERE play_cnt.count = games.play_number "
+// +"GROUP BY games.game_code, seasons.year, teams.name, play_cnt.count;"
+// +"CREATE VIEW games_score_table(game_code, year, offense_team, offense_points, defense_team, defense_points) AS "
+// +"SELECT offense_tm.game_code, offense_tm.year, offense_tm.offense_team, offense_tm.offense_points, defense_tm.defense_team, defense_tm.defense_points FROM offense_tm "
+// +"INNER JOIN defense_tm ON offense_tm.game_code = defense_tm.game_code "
+// +"WHERE offense_tm.offense_team != defense_tm.defense_team "
+// +"GROUP BY offense_tm.game_code, offense_tm.play, offense_tm.year, offense_tm.offense_team, offense_tm.offense_points, defense_tm.defense_team, defense_tm.defense_points "
+// +"ORDER BY offense_tm.year ASC");
+// System.out.println(sqlVCTable1);
+// stmt.execute(sqlVCTable1);
+String sqlVCTable = ("SELECT * FROM games_score_table");
+
+//System.out.println(sqlVCTable);
+//System.out.println(sqlVCTable1);
+ResultSet VCTableSet = stmt.executeQuery(sqlVCTable);
+//System.out.println("here\n");
+while(VCTableSet.next()){
+	long vcgame_code = VCTableSet.getLong("game_code");
+	int vcyear = VCTableSet.getInt("year");
+	String offTeam = VCTableSet.getString("offense_team");
+	int offPts = VCTableSet.getInt("offense_points");
+	String defTeam = VCTableSet.getString("defense_team");
+	int defPts = VCTableSet.getInt("defense_points");
+
+	String win = "";
+	String lose = "";
+	//System.out.println(vcyear + ", " + win + ", " + lose + "\n");
+	if(offPts > defPts){
+		win = offTeam;
+		lose = defTeam;
+		GameList.add(new GameNode(vcyear, win, lose));
+		//System.out.println(vcyear + ", " + win + ", " + lose + "\n");
+	}
+	else if(offPts < defPts){
+		lose = offTeam;
+		win = defTeam;
+		GameList.add(new GameNode(vcyear, win, lose));
+		//System.out.println(vcyear + ", " + win + ", " + lose + "\n");
+	}
+}
+
+//GameNode Game1 = new GameNode(2005, "AM", "LSU");
+//GameList.add(Game1);
+//System.out.println((GameList.get(0)).getGYear());
+
+
 		JPanel q1Panel = new JPanel();
 		tabbedPane.addTab("Victory Chain", null, q1Panel, null);
 		q1Panel.setLayout(null);
@@ -1007,36 +1123,196 @@ public class theGUI extends JFrame {
 		vcLabel.setBounds(175, 38, 438, 16);
 		q1Panel.add(vcLabel);
 		
-		JComboBox victorTeamList = new JComboBox();
-		victorTeamList.setBounds(111, 124, 123, 27);
+		JComboBox victorTeamList = new JComboBox(teamnamearray);
+		victorTeamList.setBounds(111, 124, 175, 27);
 		q1Panel.add(victorTeamList);
 		
-		JComboBox loserTeamList = new JComboBox();
-		loserTeamList.setBounds(299, 124, 123, 27);
+		JComboBox loserTeamList = new JComboBox(teamnamearray);
+		loserTeamList.setBounds(299, 124, 175, 27);
 		q1Panel.add(loserTeamList);
 		
 		JLabel victorLabel = new JLabel("Victor");
-		victorLabel.setBounds(152, 107, 82, 16);
+		victorLabel.setBounds(170, 107, 82, 16);
 		q1Panel.add(victorLabel);
 		
 		JLabel loserLabel = new JLabel("Loser");
-		loserLabel.setBounds(344, 107, 78, 16);
+		loserLabel.setBounds(360, 107, 78, 16);
 		q1Panel.add(loserLabel);
-		
-		JButton vcButton = new JButton("Generate Result");
-		vcButton.setBounds(488, 123, 163, 29);
-		q1Panel.add(vcButton);
-		
+
 		JLabel vcOutputLabel = new JLabel("Output");
 		vcOutputLabel.setBounds(344, 179, 78, 16);
 		q1Panel.add(vcOutputLabel);
 		
-		JScrollPane vcScrollPane = new JScrollPane();
-		vcScrollPane.setBounds(285, 199, 163, 163);
+		JTextArea vcText = new JTextArea();
+
+
+		JScrollPane vcScrollPane = new JScrollPane(vcText);
+		vcScrollPane.setBounds(120, 199, 500, 163);
 		q1Panel.add(vcScrollPane);
 		
-		vcTable = new JTable();
-		vcScrollPane.setViewportView(vcTable);
+		//DefaultTableModel vcModel = new DefaultTableModel();
+		//vcTable = new JTable(vcModel);
+		//vcScrollPane.setViewportView(vcTable);
+		
+		JButton vcButton = new JButton("Generate Result");
+		vcButton.setBounds(488, 123, 163, 29);
+		q1Panel.add(vcButton);
+		vcButton.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				vcText.setText("");
+				try{
+		
+					boolean ChainFound = false;
+					ArrayList<GameNode> Victories = new ArrayList<GameNode>();
+					String winner = victorTeamList.getSelectedItem().toString();
+					String loser = loserTeamList.getSelectedItem().toString();
+
+					System.out.println("Creating Victories");
+					System.out.println("Winner: " + winner);
+					System.out.println("Loser: " + loser);
+					for(int i = 0; i < GameList.size(); ++i){
+						if(winner.equals((GameList.get(i)).getGWinner())){
+							//System.out.println("winner: " + (GameList.get(i)).getGWinner());
+							Victories.add(GameList.get(i));
+						}
+					}
+
+					int curr = 0;
+					int deep = 0;
+					int currDeep = 0;
+					int currVictoryNode = 0;
+					int newGNWinnerNode = 0;
+					int currentGNLoserNode = 0;
+					String newWinner = winner;
+					String currentLoser = loser;
+					System.out.println("Enetering Chain Search");
+					ArrayList<GameNode> CurrentGNList = new ArrayList<GameNode>();
+					ArrayList<GameNode> PreviousGNList = new ArrayList<GameNode>();
+					ArrayList<GameNode> currPathGN = new ArrayList<GameNode>();
+					ArrayList<String> currPathStack = new ArrayList<String>();
+					ArrayList<Integer> currPathNode = new ArrayList<Integer>();
+					for(int i = 0; i < GameList.size(); ++i){
+						if(winner.equals((GameList.get(i)).getGWinner())){
+							//System.out.println("winner: " + (GameList.get(i)).getGWinner());
+							CurrentGNList.add(GameList.get(i));
+						}
+					}
+					for(int i = 0; i < GameList.size(); ++i){
+						if(winner.equals((GameList.get(i)).getGWinner())){
+							//System.out.println("winner: " + (GameList.get(i)).getGWinner());
+							PreviousGNList.add(GameList.get(i));
+						}
+					}
+					currPathStack.add(winner);
+					currPathNode.add(0);
+					while(!ChainFound){
+						curr = 0;
+						//System.out.println("here");
+						for(int i = currDeep; i < deep; ++i){
+							//System.out.println(currPathNode.get(i));
+							if(deep > 0){
+								currPathStack.add((PreviousGNList.get(currPathNode.get(i)).getGLoser()));
+								currPathNode.add(0);
+								currPathGN.add(PreviousGNList.get(currPathNode.get(i)));
+							}
+							
+							newWinner = currPathStack.get((currPathStack.size()-1));
+							//System.out.println(newWinner);
+							CurrentGNList.clear();
+							if(currDeep == deep-2 & i == deep-1){
+								//System.out.println("here2");
+								for(int x = 0; x < GameList.size(); ++x){
+									if(newWinner.equals((GameList.get(x)).getGWinner())){
+										PreviousGNList.add(GameList.get(x));
+									}
+								}
+							}
+							for(int x = 0; x < GameList.size(); ++x){
+								if(newWinner.equals((GameList.get(x)).getGWinner())){
+									CurrentGNList.add(GameList.get(x));
+								}
+							}
+						}
+						//System.out.println("here1");
+						currDeep = deep;
+						/*newWinner = currPathStack.get((currPathStack.size()-1));
+						CurrentGNList.clear();
+						for(int i = 0; i < GameList.size(); ++i){
+							if(newWinner.equals((GameList.get(i)).getGWinner())){
+								CurrentGNList.add(GameList.get(i));
+							}
+						}*/
+						while(!ChainFound & (curr < CurrentGNList.size()-1)){
+							if(loser.equals((CurrentGNList.get(curr)).getGLoser())){
+								ChainFound = true;
+								for(int y = 0; y < currPathGN.size(); ++y){
+									vcText.append((currPathGN.get(y).GPrint()) + "\n");
+								}
+								vcText.append(CurrentGNList.get(curr).GPrint());
+								return;
+							}
+							else{
+								++curr;
+								//System.out.println("curr: " + curr + " ," + (CurrentGNList.get(curr)).getGLoser());
+							}	
+						}
+
+						if(deep > 0){
+							currPathNode.remove((currPathStack.size()-1));
+							currPathStack.remove((currPathStack.size()-1));
+							currPathGN.remove((currPathStack.size()-1));
+							--currDeep;
+							++newGNWinnerNode;
+							currPathNode.remove((currPathStack.size()-1));
+							currPathNode.add(newGNWinnerNode);
+							//System.out.println("newGM: " + newGNWinnerNode);
+						}
+
+						if(newGNWinnerNode == (PreviousGNList.size()-1)){
+							//System.out.println("here3``````````````");
+							--currDeep;
+							newGNWinnerNode = 0;
+							currPathNode.remove((currPathStack.size()-1));
+							currPathStack.remove((currPathStack.size()-1));
+							currPathGN.remove((currPathStack.size()-1));
+							newWinner = currPathStack.get((currPathStack.size()-1));
+							PreviousGNList.clear();
+							for(int x = 0; x < GameList.size(); ++x){
+								if(newWinner.equals((GameList.get(x)).getGWinner())){
+									PreviousGNList.add(GameList.get(x));
+								}
+							}
+						}
+
+						if(currPathStack.size() == 1){
+							++currVictoryNode;	
+							if(currVictoryNode == Victories.size() | deep == 0){
+								++deep;
+								if(deep > 1){
+									currDeep = 0;
+								}
+								currVictoryNode = 0;
+								CurrentGNList = Victories;
+							}
+							currPathNode.remove(0);
+							currPathNode.add(currVictoryNode);
+						}
+						//System.out.println("deep: " + deep);
+						// stmt.execute("drop view play_cnt, offense_tm, defense_tm, games_score_table");
+
+					}
+
+				}catch (Exception XYZ){
+					System.out.println("Error 404: 0xdeadbeef, Team doesn't have any victories");
+				}
+//Auburn -> new mexico state -> Abeline christian
+			}
+		});
+		
+		
+	}catch (Exception colume){
+		System.out.println("Error");
+	}
 		
 		
 		
@@ -1247,7 +1523,7 @@ JPanel q4Panel = new JPanel();
 		q4Panel.add(hfaOutputLabel);
 		
 		JScrollPane hfaScrollPane = new JScrollPane();
-		hfaScrollPane.setBounds(285, 154, 300, 185);
+		hfaScrollPane.setBounds(230, 154, 300, 185);
 		q4Panel.add(hfaScrollPane);
 		
 		DefaultTableModel hfaModel = new DefaultTableModel();
@@ -1261,6 +1537,7 @@ JPanel q4Panel = new JPanel();
 		
 		hfaButton.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
+				hfaModel.setRowCount(0);
 				String selectedConf = confrenceList.getSelectedItem().toString();
 				try{
 				//get all team codes and add them to array
