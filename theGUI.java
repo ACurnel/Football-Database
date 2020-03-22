@@ -109,12 +109,12 @@ public class theGUI extends JFrame {
 		tabbedPane.addTab("General", null, generalPanel, null);
 		generalPanel.setLayout(null);
 		
-		JLabel generalLabel1 = new JLabel("Here you will be able to make a general query. Start at the top and move your way down the list.");
-		generalLabel1.setBounds(55, 6, 603, 16);
+		JLabel generalLabel1 = new JLabel("Here you will be able to make a general query. Start at the top and move down the list.");
+		generalLabel1.setBounds(55, 6, 700, 16);
 		generalPanel.add(generalLabel1);
 		
-		JLabel generalLabel2 = new JLabel("Do NOT go back up once you have already moved down. If you do not select anything, defaults are in place. ");
-		generalLabel2.setBounds(6, 24, 697, 16);
+		JLabel generalLabel2 = new JLabel("DON'T go up once you've gone down. If you do not select anything, defaults are in place. ");
+		generalLabel2.setBounds(55, 24, 800, 16);
 		generalPanel.add(generalLabel2);
 		
 		
@@ -133,7 +133,7 @@ public class theGUI extends JFrame {
 			}
 		});
 
-		entityBtn.setBounds(275, 64, 150, 29);
+		entityBtn.setBounds(275, 64, 215, 29);
 		generalPanel.add(entityBtn);
 		
 		
@@ -216,7 +216,7 @@ public class theGUI extends JFrame {
 				}
 			}
 		});
-		columnsBtn.setBounds(275, 105, 150, 29);
+		columnsBtn.setBounds(275, 105, 215, 29);
 		generalPanel.add(columnsBtn);
 		
 		
@@ -327,7 +327,7 @@ public class theGUI extends JFrame {
 		
 			}
 		});
-		joinBtn.setBounds(275, 146, 150, 29);
+		joinBtn.setBounds(275, 146, 215, 29);
 		generalPanel.add(joinBtn);
 		
 		
@@ -384,7 +384,7 @@ public class theGUI extends JFrame {
 	
 			}
 		});
-		yearsBtn.setBounds(275, 187, 150, 29);
+		yearsBtn.setBounds(275, 187, 215, 29);
 		generalPanel.add(yearsBtn);
 		
 		
@@ -431,7 +431,7 @@ public class theGUI extends JFrame {
 		
 			}
 		});
-		conditionalBtn.setBounds(275, 228, 150, 29);
+		conditionalBtn.setBounds(275, 228, 215, 29);
 		generalPanel.add(conditionalBtn);
 		
 				
@@ -451,7 +451,7 @@ public class theGUI extends JFrame {
 		
 			}
 		});
-		outLimitBtn.setBounds(275, 269, 150, 29);
+		outLimitBtn.setBounds(275, 269, 215, 29);
 		generalPanel.add(outLimitBtn);
 		
 		
@@ -591,7 +591,7 @@ public class theGUI extends JFrame {
 
 			}
 		});
-		outputBtn.setBounds(275, 314, 150, 29);
+		outputBtn.setBounds(275, 314, 215, 29);
 		generalPanel.add(outputBtn);
 		
 		
@@ -603,7 +603,7 @@ public class theGUI extends JFrame {
 		joinPanel.setLayout(null);
 		
 		JLabel sjLabel = new JLabel("Here you will be able to make a more specific search on the database using simple joins.");
-		sjLabel.setBounds(88, 6, 559, 16);
+		sjLabel.setBounds(38, 6, 700, 16);
 		joinPanel.add(sjLabel);
 		
 		//entity code goes here
@@ -617,7 +617,7 @@ public class theGUI extends JFrame {
 							JOptionPane.QUESTION_MESSAGE, null, choices, choices[0]); 				
 			}
 		});
-		sjEntityBtn.setBounds(287, 34, 150, 29);
+		sjEntityBtn.setBounds(287, 34, 215, 29);
 		joinPanel.add(sjEntityBtn);
 		
 		
@@ -744,7 +744,7 @@ public class theGUI extends JFrame {
 			}
 			
 		});
-		sjColumnsBtn.setBounds(287, 75, 150, 29);
+		sjColumnsBtn.setBounds(287, 75, 215, 29);
 		joinPanel.add(sjColumnsBtn);
 		
 		
@@ -760,7 +760,7 @@ public class theGUI extends JFrame {
 				//System.out.println(sjCmd);
 			}
 		});
-		sjIntersectionBtn.setBounds(287, 116, 150, 29);
+		sjIntersectionBtn.setBounds(287, 116, 215, 29);
 		joinPanel.add(sjIntersectionBtn);
 		
 		
@@ -817,7 +817,7 @@ public class theGUI extends JFrame {
 				}
 			}
 		});
-		sjYearsBtn.setBounds(287, 157, 150, 29);
+		sjYearsBtn.setBounds(287, 157, 215, 29);
 		joinPanel.add(sjYearsBtn);
 		
 		
@@ -886,7 +886,7 @@ public class theGUI extends JFrame {
 
 			}
 		});
-		sjConditionalBtn.setBounds(287, 198, 150, 29);
+		sjConditionalBtn.setBounds(287, 198, 215, 29);
 		joinPanel.add(sjConditionalBtn);		
 		
 		
@@ -907,7 +907,7 @@ public class theGUI extends JFrame {
 				}
 			}
 		});
-		sjLimitBtn.setBounds(287, 239, 150, 29);
+		sjLimitBtn.setBounds(287, 239, 215, 29);
 		joinPanel.add(sjLimitBtn);
 		
 		JButton sjOutputBtn = new JButton("Generate Result");
@@ -993,7 +993,7 @@ public class theGUI extends JFrame {
 				}catch(Exception outputE) {System.out.println("error: could not output");}
 			}
 		});
-		sjOutputBtn.setBounds(287, 280, 150, 29);
+		sjOutputBtn.setBounds(287, 280, 215, 29);
 		joinPanel.add(sjOutputBtn);
 		
 		
@@ -1120,7 +1120,7 @@ while(VCTableSet.next()){
 		q1Panel.setLayout(null);
 		
 		JLabel vcLabel = new JLabel("Select two teams to see the how one is better than the other.");
-		vcLabel.setBounds(175, 38, 438, 16);
+		vcLabel.setBounds(150, 38, 550, 16);
 		q1Panel.add(vcLabel);
 		
 		JComboBox victorTeamList = new JComboBox(teamnamearray);
@@ -1323,7 +1323,7 @@ while(VCTableSet.next()){
 		q3Panel.setLayout(null);
 		
 		JLabel ryLabel = new JLabel("Input a given team and the team with the most rushing yards against them will be displayed.");
-		ryLabel.setBounds(70, 38, 640, 16);
+		ryLabel.setBounds(35, 38, 750, 16);
 		q3Panel.add(ryLabel);
 		
 
@@ -1443,8 +1443,8 @@ JPanel q4Panel = new JPanel();
 		tabbedPane.addTab("Home Field Advantage", null, q4Panel, null);
 		q4Panel.setLayout(null);
 		
-		JLabel hfaLabel1 = new JLabel("The below table will rank the average home field advantage by toughest place to play within a given conference.");
-		hfaLabel1.setBounds(6, 6, 704, 16);
+		JLabel hfaLabel1 = new JLabel("The below table will rank the average home field advantage by toughest place to play");
+		hfaLabel1.setBounds(45, 6, 704, 16);
 		q4Panel.add(hfaLabel1);
 		
 		JLabel hfaLabel2 = new JLabel("100 - impossible to beat at home");
@@ -1641,8 +1641,8 @@ JPanel turfPanel = new JPanel();
 		tabbedPane.addTab("Turf", null, turfPanel, null);
 		turfPanel.setLayout(null);
 		
-		JLabel turfLabel = new JLabel("Input a given team and year to get their alltime stadium material performance statistics in that conference.");
-		turfLabel.setBounds(70, 38, 750, 32);
+		JLabel turfLabel = new JLabel("Input a given team and year to get their alltime stadium turf performance stats in that conference.");
+		turfLabel.setBounds(10, 38, 750, 32);
 		turfPanel.add(turfLabel);
 		
 
