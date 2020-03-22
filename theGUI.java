@@ -34,7 +34,9 @@ public class theGUI extends JFrame {
 	private ArrayList<String> columnlistEntity1 = new ArrayList<String>();
 	private ArrayList<String> savedSelectedColumnListE1 = new ArrayList<String>();
 	private ArrayList<String> savedSelectedColumnListE2 = new ArrayList<String>();
-	
+	private String q3sqlStatement = "";
+	private String turfsqlStatement = "";
+
 	/**
 	 * Launch the application.
 	 */
@@ -1047,14 +1049,15 @@ public class theGUI extends JFrame {
 		ryLabel.setBounds(70, 38, 640, 16);
 		q3Panel.add(ryLabel);
 		
+
 		JComboBox ryTeamList = new JComboBox();
-		ryTeamList.setMaximumRowCount(12);
-		ryTeamList.setBounds(217, 111, 117, 27);
+		ryTeamList.setMaximumRowCount(256);
+		ryTeamList.setBounds(152, 111, 182, 27);
 		q3Panel.add(ryTeamList);
 		
 		JTextArea ryOutput = new JTextArea();
 		ryOutput.setEditable(false);
-		ryOutput.setBounds(282, 209, 162, 27);
+		ryOutput.setBounds(282, 209, 250, 27);
 		q3Panel.add(ryOutput);
 		
 		JLabel ryOutputLabel = new JLabel("Output");
@@ -1063,11 +1066,98 @@ public class theGUI extends JFrame {
 		
 		JButton ryButton = new JButton("Generate Result");
 		ryButton.setBounds(390, 110, 190, 29);
+
+		
 		q3Panel.add(ryButton);
 		
 		JLabel ryTeamLabel = new JLabel("Team");
-		ryTeamLabel.setBounds(254, 94, 61, 16);
+		ryTeamLabel.setBounds(230, 95, 61, 16);
 		q3Panel.add(ryTeamLabel);
+
+		
+		q3sqlStatement = "select distinct name from Teams order by name ASC;";
+		try {
+			
+			try {
+				dbSetup q3my = new dbSetup();
+				Class.forName("org.postgresql.Driver");
+				conn = DriverManager.getConnection("jdbc:postgresql://csce-315-db.engr.tamu.edu/team_nand", q3my.user,
+					q3my.pswd);
+			} catch (Exception q3f) {
+				q3f.printStackTrace();
+				System.err.println(q3f.getClass().getName() + ": " + q3f.getMessage());
+				System.exit(0);
+			} // end try catch	
+			stmt = conn.createStatement();
+			ResultSet q3TeamNames = stmt.executeQuery(q3sqlStatement);
+			while (q3TeamNames.next()) {
+				ryTeamList.addItem(q3TeamNames.getString(1));
+			}
+			
+			ryButton.addActionListener(new ActionListener() {
+				public void actionPerformed(ActionEvent e) {
+					String q3Team = (String)ryTeamList.getSelectedItem();
+					String q3TeamCode = "";
+					q3sqlStatement = "select distinct team_code from Teams where name = '" + q3Team + "';";
+					try {
+						ResultSet q3TC = stmt.executeQuery(q3sqlStatement);
+						while (q3TC.next()) {
+							q3TeamCode = q3TC.getString(1);
+						}
+						ArrayList<String> q3GamesList = new ArrayList<String>();
+						ArrayList<String> q3VisitList = new ArrayList<String>();
+						ArrayList<String> q3HomeList = new ArrayList<String>();
+						q3sqlStatement = "select game_code, visit_team_code, home_team_code from Seasons where visit_team_code='"+q3TeamCode+"' or home_team_code='"+q3TeamCode+"';";
+						ResultSet q3GCList = stmt.executeQuery(q3sqlStatement);
+						while (q3GCList.next()) {
+							q3GamesList.add(q3GCList.getString(1));
+							q3VisitList.add(q3GCList.getString(2));
+							q3HomeList.add(q3GCList.getString(3));
+						}
+						if (q3GamesList.size()==0) { 
+							ryOutput.setText("No Game Data Available :(");
+						}
+						else {
+							String q3MaxRushTC = "";
+							String q3RushTeamCode = "";
+							int q3MaxRush = 0;
+							stmt.execute("Create temporary view Q3Games as " + q3sqlStatement);
+							for (int i = 0; i < q3GamesList.size(); i++) {
+								if (q3TeamCode.equals(q3VisitList.get(i))) { 
+									q3RushTeamCode = q3HomeList.get(i);
+								}
+								else if (q3TeamCode.equals(q3HomeList.get(i))) {
+									q3RushTeamCode = q3VisitList.get(i);
+								}
+								q3sqlStatement = "select sum(Statistics.rush_yard) from Statistics inner join Q3Games on Statistics.game_code=Q3Games.game_code where team_code = '"+q3RushTeamCode+"';";
+								ResultSet q3RushCount = stmt.executeQuery(q3sqlStatement);
+			            		//System.out.println(q3GamesList.size());
+								while (q3RushCount.next()) {
+									// System.out.println(q3RushCount.getString(1));
+									if (Integer.parseInt(q3RushCount.getString(1))>q3MaxRush) {
+										q3MaxRush = Integer.parseInt(q3RushCount.getString(1));
+										q3MaxRushTC = q3RushTeamCode;
+										// System.out.println(q3MaxRush);
+										// System.out.println("hi");
+									}
+								}		            			
+							}
+							stmt.execute("drop view Q3Games;");
+							ResultSet q3MaxRushName = stmt.executeQuery("select distinct name from Teams where team_code='"+q3MaxRushTC+"';");
+							while (q3MaxRushName.next()) {
+								ryOutput.setText(q3MaxRushName.getString(1)+": "+q3MaxRush+" yards");
+							}
+						}
+					} catch (Exception q3e) {
+						q3e.printStackTrace();
+					}
+
+				}
+			});
+			
+		} catch (Exception q3e1) {
+			q3e1.printStackTrace();
+		}
 		
 		
 		
