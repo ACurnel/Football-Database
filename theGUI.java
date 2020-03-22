@@ -6,6 +6,7 @@ import javax.swing.*;
 import java.sql.*;
 import java.io.*;
 import java.util.ArrayList;
+import javax.swing.table.DefaultTableModel;
 
 
 public class theGUI extends JFrame {
@@ -1162,8 +1163,7 @@ public class theGUI extends JFrame {
 		
 		
 		//******************************* QUESTION 4 *******************************\\
-		
-		JPanel q4Panel = new JPanel();
+JPanel q4Panel = new JPanel();
 		tabbedPane.addTab("Home Field Advantage", null, q4Panel, null);
 		q4Panel.setLayout(null);
 		
@@ -1179,29 +1179,182 @@ public class theGUI extends JFrame {
 		hfaLabel3.setBounds(285, 42, 198, 16);
 		q4Panel.add(hfaLabel3);
 		
-		JComboBox confrenceList = new JComboBox();
+
+		String[] confrences = {"American Athletic Conference",
+		"Atlantic 10",
+		"Atlantic Coast Conference",
+		"Big 12 Conference",
+		"Big East Conference",
+		"Big Sky",
+		"Big South",
+		"Big Ten Conference",
+		"Colonial",
+		"Conference USA",
+		"Gateway",
+		"Gateway Football Conference",
+		"Ind",
+		"Independent",
+		"Ivy",
+		"Metro Atlantic",
+		"Mid-American Conference",
+		"Mid-Eastern",
+		"Mountain West",
+		"Mountain West Conference",
+		"MVFC",
+		"Northeast",
+		"Ohio Valley",
+		"OVC",
+		"Pac-12 Conference",
+		"Pacific-10 Conference",
+		"Patriot",
+		"Pioneer",
+		"Pioneer Football League",
+		"Southeastern Conference",
+		"Southern",
+		"Southland",
+		"Southwestern",
+		"Sun Belt",
+		"Sun Belt Conference",
+		"Western Athletic Conference"};
+
+		JComboBox confrenceList = new JComboBox(confrences);   //compiler warnings
 		confrenceList.setMaximumRowCount(12);
-		confrenceList.setBounds(206, 87, 126, 27);
+		confrenceList.setBounds(206, 87, 250, 27);
 		q4Panel.add(confrenceList);
 		
 		JLabel conferenceLabel = new JLabel("Conference");
 		conferenceLabel.setBounds(206, 70, 126, 16);
 		q4Panel.add(conferenceLabel);
 		
+		class teamName_winPercentage{
+			Double winPercentage;
+			String teamName;	
+		}
+		class stringPair{
+			public stringPair(String is1, String is2){
+				str1 = is1;
+				str2 = is2;
+			}
+			String str1;
+			String str2;
+		}
 		JButton hfaButton = new JButton("Generate Result");
-		hfaButton.setBounds(385, 86, 187, 29);
+				hfaButton.setBounds(475, 86, 187, 29); //385
 		q4Panel.add(hfaButton);
 		
 		JLabel hfaOutputLabel = new JLabel("Output");
-		hfaOutputLabel.setBounds(338, 126, 44, 16);
+		hfaOutputLabel.setBounds(338, 126, 100, 16);
 		q4Panel.add(hfaOutputLabel);
 		
 		JScrollPane hfaScrollPane = new JScrollPane();
-		hfaScrollPane.setBounds(285, 154, 152, 185);
+		hfaScrollPane.setBounds(285, 154, 300, 185);
 		q4Panel.add(hfaScrollPane);
 		
-		hfaTable = new JTable();
+		DefaultTableModel hfaModel = new DefaultTableModel();
+		hfaTable = new JTable(hfaModel);
+		hfaModel.addColumn("Team Name");
+		hfaModel.addColumn("Home Field Advantage");
+
 		hfaScrollPane.setViewportView(hfaTable);
+		
+		
+		
+		hfaButton.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				String selectedConf = confrenceList.getSelectedItem().toString();
+				try{
+				//get all team codes and add them to array
+				dbSetup my = new dbSetup();
+				try {
+					Class.forName("org.postgresql.Driver");
+					conn = DriverManager.getConnection("jdbc:postgresql://csce-315-db.engr.tamu.edu/team_nand", my.user,
+						my.pswd);
+				} catch (Exception f) {
+					f.printStackTrace();
+					System.err.println(f.getClass().getName() + ": " + f.getMessage());
+					System.exit(0);
+				} // end try catch	
+				stmt = conn.createStatement();
+
+				//get all conference codes and names and store them into array
+				ResultSet conferenceInfoQ = stmt.executeQuery("select conference_code, name from conferences");
+				ArrayList<stringPair> conferenceInfo = new ArrayList<stringPair>();
+
+				while(conferenceInfoQ.next())
+					conferenceInfo.add(new stringPair(conferenceInfoQ.getString("conference_code"), conferenceInfoQ.getString("name")));
+
+				String confCode = "";
+				for(stringPair i : conferenceInfo){
+					if(i.str2.equals(selectedConf)){
+						confCode = i.str1;
+						break;
+					}
+				}
+
+				// System.out.println("code: "+confCode+" conference: "+selectedConf);
+
+
+				//get list of all teams in selected conference and store them in array
+
+				ResultSet team_codesQ = stmt.executeQuery("select distinct team_code, name from teams where conference_code = "+confCode);
+				ArrayList<String> team_codes = new ArrayList<String>();
+				ArrayList<String> team_names = new ArrayList<String>();
+
+				while(team_codesQ.next()){
+					team_codes.add(team_codesQ.getString("team_code"));
+					team_names.add(team_codesQ.getString("name"));
+				}
+
+
+				//for each team find all home games, and calculate win percentage
+				ArrayList<teamName_winPercentage> q4Res = new ArrayList<teamName_winPercentage>(); 
+				for(int i = 0; i < team_codes.size(); i++)  {  //iterate through all teamcodes
+					System.out.println(String.format("%.2f",((double)i/(double)team_codes.size() * 100))+"% complete");   //print progress
+					ArrayList<String> game_codes = new ArrayList<String>();
+					ArrayList<String> visit_team_codes = new ArrayList<String>();
+
+					//get all game codes that was played at home for the current team
+					ResultSet game_codesQ = stmt.executeQuery("select game_code, visit_team_code from seasons where home_team_code = "+team_codes.get(i));  //could only compare teams in same conference
+					while(game_codesQ.next()){
+						game_codes.add(game_codesQ.getString("game_code"));
+						visit_team_codes.add(game_codesQ.getString("visit_team_code"));
+					}
+					Double wins = 0.0;
+					for(int j = 0; j < game_codes.size(); j++){ //iterate through all home games
+						ResultSet homeTeamPointsQ = stmt.executeQuery("select points from statistics where game_code = "+game_codes.get(j)+" and team_code = "+team_codes.get(i));
+						int homeTeamPoints = -1;
+						int visitTeamPoints = -1;
+
+						homeTeamPointsQ.next();
+						homeTeamPoints = homeTeamPointsQ.getInt("points");
+						ResultSet visitTeamPointsQ = stmt.executeQuery("select points from statistics where game_code = "+game_codes.get(j)+" and team_code = "+visit_team_codes.get(j));
+						visitTeamPointsQ.next();
+						visitTeamPoints = visitTeamPointsQ.getInt("points");
+						if(homeTeamPoints > visitTeamPoints ) 
+							wins++;
+
+					}
+					teamName_winPercentage temp = new teamName_winPercentage();
+					temp.teamName = team_names.get(i);
+					temp.winPercentage = wins/game_codes.size() * 100;
+
+					q4Res.add(temp);
+					// System.out.println(temp.teamName + "     "+temp.winPercentage);
+					//String.format("%.2f", (turfsUsedPercent.get(i)))
+					hfaModel.addRow(new Object[]{temp.teamName, String.format("%.2f",temp.winPercentage)});
+	
+			}
+
+		} catch(Exception q4e){
+				System.out.println("Error: 0x213958");
+			}
+			System.out.println("100.0% complete");
+
+
+
+			}
+		});
+
 		
 		
 		
